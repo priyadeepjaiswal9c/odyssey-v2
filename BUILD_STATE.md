@@ -16,9 +16,19 @@
 - [ ] **P5** — APEX feed integration + mobile/perf tiers + a11y + wow finish
 - [ ] **DoD** — Verified end-to-end · deployed to Vercel · live URL recorded · README
 
+## ⚡ DIRECTION UPDATE — LOCKED 2026-07-06 (supersedes conflicts)
+
+1. **RTX-realistic look**: PBR + env reflections + soft shadows + god-rays + bloom + subtle DoF. Warm golden-hour, **no purple anywhere**.
+2. **Narrator cut**: no dialogue/subtitle overlay. Kip stays as silent, subtle critter.
+3. **Bespoke island per project**: Meridian = control-tower/power-grid · TARK = courthouse/library · Cab = transit hub w/ rails · Windflow = AI forge/lab · Achievements = trophy hall.
+4. **Minecraft-style start menu**: blocky KALPANA logo, stone/dirt beveled buttons, first click unlocks audio.
+5. **SFX + ambient music**: WebAudio-synthesized (100% original by construction — zero licensing risk), gesture-gated, mute/volume toggle.
+6. Redirect existing scaffolding — engine/SSR/tour architecture retained.
+
 ## Current state
 
-P0 in progress: repo initialized, scaffolding Next.js app.
+P1 (redirected): engine + hub + Meridian + tour verified working in Chrome pre-pivot.
+Now pivoting: PBR material classes in mesher → realistic sky/lighting → postprocessing → narrator removal → start menu + audio → Meridian rebuilt as control-tower/power-grid.
 
 ## Decisions log
 
@@ -31,6 +41,10 @@ P0 in progress: repo initialized, scaffolding Next.js app.
 | D5 | Showcase panels: in-world voxel screens + camera-synced overlay cards for text/links (no textures of text in-world) | Crisp readable text at all DPRs, accessible links, light + fast |
 | D6 | Vercel CLI absent on machine; will attempt `npx vercel --prod --yes` at DoD, else queue deploy to Human Review | Per master prompt fallback rule |
 | D7 | Fonts: Pixelify Sans (display, voxel-flavored) + Nunito (body/UI) via next/font | Cozy + voxel vibe, self-hosted by Next |
+| D8 | Verification: puppeteer-core + system Chrome headless (user's visible Chrome window kept getting occluded → RAF paused → unverifiable). Dev-only `__kalpana.snap()` hook for deterministic framing | Deterministic screenshots for every stop, no window-focus dependency |
+| D9 | Audio: synthesize ALL SFX + ambient music with WebAudio (no asset files) | "Original/CC0 only" made trivially true — original by construction; zero bundle weight |
+| D10 | RTX pipeline: mesher emits material-class groups (matte/gloss/metal/water/glow) → MeshStandardMaterial + PMREM env from own sky; @react-three/postprocessing Bloom/GodRays/DoF/Vignette by tier | Real PBR without texture assets; reflections match the actual sky |
+| D11 | God-rays + DoF high tier only; bloom high+medium; halo sprites only on low tier (bloom replaces them) | Perf tiers per master prompt |
 
 ## Active blockers
 

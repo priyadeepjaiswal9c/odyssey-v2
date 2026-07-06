@@ -327,3 +327,359 @@ a {
   opacity: 0.7;
   margin-left: 6px;
 }
+
+/* ————————————————————————————————————————————————
+   HUD — the Kalpana UI bar
+   ———————————————————————————————————————————————— */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* canvas gets the drags; buttons re-enable */
+  z-index: 5;
+  font-family: var(--font-body);
+}
+
+.hud button,
+.hud a {
+  pointer-events: auto;
+}
+
+/* — wordmark — */
+.hud-wordmark {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-shadow: 0 2px 12px rgba(36, 19, 51, 0.8);
+}
+
+.hud-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.22em;
+  color: var(--glow);
+}
+
+.hud-subtitle {
+  font-size: 0.78rem;
+  color: rgba(255, 233, 196, 0.75);
+  letter-spacing: 0.04em;
+}
+
+/* — realm nav — */
+.hud-nav {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 60vw;
+}
+
+.hud-pill {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cream);
+  background: rgba(43, 27, 61, 0.55);
+  border: 1px solid rgba(255, 184, 77, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.hud-pill:hover {
+  border-color: var(--gold);
+  background: rgba(255, 184, 77, 0.18);
+  transform: translateY(-1px);
+}
+
+.hud-pill.is-active {
+  background: linear-gradient(135deg, var(--gold), var(--ember));
+  color: var(--dusk-deep);
+  border-color: transparent;
+  box-shadow: var(--shadow-glow);
+}
+
+.hud-pill.is-soon {
+  opacity: 0.55;
+}
+
+.hud-soon {
+  font-size: 0.62rem;
+  margin-left: 5px;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: rgba(168, 110, 160, 0.4);
+  vertical-align: middle;
+}
+
+.hud-pill-text {
+  border-style: dashed;
+}
+
+/* — Kip bar — */
+.hud-kipbar {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(720px, calc(100vw - 32px));
+  padding: 12px 16px;
+  background: rgba(36, 19, 51, 0.6);
+  border: 1px solid rgba(255, 184, 77, 0.3);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-soft);
+}
+
+.hud-kip-avatar {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  background: linear-gradient(160deg, var(--glow), var(--gold));
+  border-radius: 9px;
+  box-shadow: 0 0 18px 4px rgba(255, 217, 138, 0.45);
+  animation: kip-bob 2.4s ease-in-out infinite;
+}
+
+.hud-kip-avatar::before,
+.hud-kip-avatar::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  width: 5px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--dusk-deep);
+}
+
+.hud-kip-avatar::before { left: 9px; }
+.hud-kip-avatar::after { right: 9px; }
+
+.hud-kip-glow {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--glow);
+  box-shadow: 0 0 10px 3px rgba(255, 233, 196, 0.8);
+  animation: kip-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes kip-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes kip-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.hud-dialogue {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--cream);
+  min-height: 2.8em;
+  display: flex;
+  align-items: center;
+}
+
+.hud-flying {
+  color: var(--gold);
+  letter-spacing: 0.3em;
+  animation: kip-pulse 1s ease-in-out infinite;
+}
+
+.hud-controls {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.hud-ctl {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--cream);
+  background: rgba(255, 184, 77, 0.12);
+  border: 1px solid rgba(255, 184, 77, 0.35);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hud-ctl:hover:not(:disabled) {
+  background: rgba(255, 184, 77, 0.3);
+}
+
+.hud-ctl:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.hud-ctl-main {
+  background: linear-gradient(135deg, var(--gold), var(--ember));
+  color: var(--dusk-deep);
+  border: none;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hud-ctl-main:hover {
+  filter: brightness(1.08);
+}
+
+/* — showcase card — */
+.hud-card {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%) translateX(calc(100% + 40px));
+  width: min(380px, calc(100vw - 40px));
+  max-height: min(72vh, 640px);
+  overflow-y: auto;
+  padding: 22px 24px;
+  background: rgba(36, 19, 51, 0.72);
+  border: 1px solid rgba(255, 184, 77, 0.35);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hud-card.is-open {
+  transform: translateY(-50%) translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hud-card-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 184, 77, 0.15);
+  color: var(--cream);
+  cursor: pointer;
+}
+
+.hud-card-close:hover {
+  background: rgba(255, 184, 77, 0.35);
+}
+
+.hud-card-kicker {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+
+.hud-card-title {
+  font-size: 1.15rem;
+  color: var(--glow);
+  line-height: 1.3;
+}
+
+.hud-card-tags {
+  color: var(--mauve);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 6px 0 10px;
+}
+
+.hud-card-summary {
+  font-size: 0.9rem;
+  color: rgba(255, 243, 221, 0.85);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.hud-card-list {
+  padding-left: 1.1em;
+  font-size: 0.85rem;
+  color: rgba(255, 243, 221, 0.9);
+}
+
+.hud-card-list li {
+  margin-bottom: 6px;
+}
+
+.hud-card-links {
+  display: flex;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.hud-card-links a {
+  font-weight: 800;
+  font-size: 0.88rem;
+  text-decoration: none;
+  color: var(--gold);
+  border-bottom: 2px solid rgba(255, 184, 77, 0.4);
+}
+
+.hud-card-links a:hover {
+  color: var(--glow);
+  border-color: var(--glow);
+}
+
+/* — mobile — */
+@media (max-width: 640px) {
+  .hud-wordmark { top: 14px; left: 16px; }
+  .hud-title { font-size: 1.15rem; }
+  .hud-subtitle { display: none; }
+  .hud-nav {
+    top: auto;
+    bottom: 96px;
+    right: 50%;
+    transform: translateX(50%);
+    max-width: calc(100vw - 20px);
+    justify-content: center;
+  }
+  .hud-pill { font-size: 0.72rem; padding: 6px 10px; }
+  .hud-kipbar {
+    bottom: 10px;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .hud-dialogue { font-size: 0.82rem; }
+  .hud-ctl-main { font-size: 0.72rem; }
+  .hud-card {
+    top: auto;
+    bottom: 150px;
+    right: 50%;
+    transform: translateX(50%) translateY(20px);
+    max-height: 46vh;
+    opacity: 0;
+  }
+  .hud-card.is-open {
+    transform: translateX(50%) translateY(0);
+    opacity: 1;
+  }
+}

@@ -13,6 +13,28 @@ and deployed, end-to-end in one continuous autonomous run. Bar: **Awwwards Site-
 whole assignment; do **not** stop for the human except to queue genuinely irreversible external actions
 (a real cloud deploy) to a Human Review list.
 
+## Direction update — LOCKED 2026-07-06 (HIGHEST PRIORITY — supersedes any conflict below)
+
+Apply ALL of these; they override the original locked decisions where they conflict:
+
+1. **RTX-realistic look** (not flat/cozy voxel): PBR materials, glossy reflections (env map + SSR where
+   feasible), soft shadows, volumetric god-rays, emissive glow, bloom, subtle DoF — the "Minecraft RTX"
+   aesthetic. **Warm golden-hour palette. No purple.**
+2. **Cut the narrator** — remove the companion-critter dialogue/subtitle overlay entirely. World + light +
+   sound carry it. Any critter that remains is silent, subtle, text-free.
+3. **Bespoke island per project** (hard req — not reskins): unique silhouette + materials + accent per
+   project (Meridian = control-tower/power-grid; TARK = courthouse/library; Cab = transit hub w/ rails;
+   Windflow = AI forge/lab; Achievements = trophy hall).
+4. **Minecraft-style start menu**: KALPANA blocky logo + stone/dirt-textured beveled buttons (hover +
+   click-depress) to pick a realm (Explore/Projects/Experience/Achievements/About). This first click also
+   unlocks audio.
+5. **Sound effects** — Minecraft-flavored (clicks, footsteps/ticks, whooshes, chimes). **Original /
+   royalty-free / CC0 ONLY — never ripped Minecraft or C418 assets.**
+6. **Music** — calm ambient loop (original or CC0, C418-*style* not C418), starts on first click, with a
+   **mute/volume** toggle. Gesture-gated for autoplay policy.
+7. **Build handling:** redirect from the existing scaffolding — don't wipe; pivot lighting/materials, cut
+   the narrator, add the start menu + audio, and rebuild each island bespoke.
+
 ## Locked decisions (NO decision intake — build straight through)
 
 All choices are already made. Do not ask; just build. (Human may override name/palette in one message

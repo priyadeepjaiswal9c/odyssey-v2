@@ -57,7 +57,17 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${nunito.variable} ${pixelify.variable}`}>
-      <body>{children}</body>
+      <body>
+        {process.env.NODE_ENV !== "production" && (
+          // dev-only: capture every error from t=0 for headless verification
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.__errs=[];window.addEventListener('error',function(e){window.__errs.push((e.message||'?')+' @ '+String(e.filename||'').split('/').pop()+':'+e.lineno)},true);window.addEventListener('unhandledrejection',function(e){window.__errs.push('rej: '+String(e.reason&&e.reason.message||e.reason))});`,
+            }}
+          />
+        )}
+        {children}
+      </body>
     </html>
   );
 }

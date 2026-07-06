@@ -10,6 +10,32 @@
 
 ---
 
+## Direction update — LOCKED 2026-07-06 (overrides anything below it conflicts with)
+
+- **Look = RTX-realistic, not flat/cozy.** Keep the voxel blocks, but light them like **Minecraft with
+  RTX on**: PBR materials, glossy reflections (env map / SSR), soft ray-traced-style shadows, volumetric
+  god-rays, emissive glow, bloom, subtle depth-of-field. Premium and dramatic.
+- **Palette = warm golden-hour. No purple anywhere.** Sunlit, warm reflections, long soft shadows.
+- **Narrator = CUT.** No companion-critter dialogue or subtitle overlay (it read cheesy). World +
+  lighting + sound carry it. Kip, if kept at all, is silent and subtle — zero text.
+- **Each island = a bespoke build, styled to its project's type** (hard requirement — not reskinned
+  copies). Distinct silhouette, materials, accent per project: Meridian (energy supply-chain) → a
+  control-tower over a glowing power-grid; TARK (legal AI) → a courthouse / great-library; Campus Cab →
+  a transit hub with rails + carts; Windflow (AI intern) → an AI forge/lab; Achievements → a trophy /
+  monument hall.
+- **Start menu = Minecraft main-menu style.** Landing screen: the **KALPANA** title as a blocky/pixel
+  logo + **Minecraft-styled buttons** (stone/dirt-textured, 3D bevel, hover-highlight, click-depress) to
+  choose a realm — Explore · Projects · Experience · Achievements · About. This first click also unlocks
+  audio (satisfies browser autoplay policy).
+- **Sound effects** — Minecraft-*flavored* SFX: button click/press, footstep/block ticks on interaction,
+  whoosh on camera fly-ins, soft chimes on reveals. **Original / royalty-free / CC0 only — never ripped
+  Minecraft or C418 assets** (copyright).
+- **Music** — a calm ambient background loop (original or CC0, C418-*style* but not C418's tracks), starts
+  on the first button click, with a visible **mute / volume** toggle.
+- **Build handling:** **redirect from the current scaffolding** (don't full-wipe) — pivot lighting/
+  materials to RTX golden-hour, cut the narrator, add the start menu + audio, and rebuild each island as
+  its own bespoke structure.
+
 ## Locked decisions (front-loaded → the build runs with zero interruptions)
 
 - **Navigation:** **click-to-travel + a guided auto-tour** — no free-roam character. A camera-directed
