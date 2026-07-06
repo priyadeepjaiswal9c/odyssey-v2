@@ -67,6 +67,7 @@ const defs = [
   { name: "trophyGold", color: "#ffd060", mat: "glow", emissive: 0.45, flat: true },
   { name: "screen", color: "#bfe8d8", mat: "glow", emissive: 0.55, flat: true },
   { name: "glassLit", color: "#ffd98a", mat: "glow", emissive: 0.7, flat: true },
+  { name: "signalGreen", color: "#4dd17a", mat: "glow", emissive: 0.7, flat: true },
   // — Kip —
   { name: "kipCream", color: "#f7e6c4" },
   { name: "kipGold", color: "#f0c078" },

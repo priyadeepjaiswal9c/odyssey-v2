@@ -8,8 +8,8 @@ import type { RealmId } from "./store";
 /** realms that have built geometry — P2/P3 extend this */
 export const BUILT_REALMS = ["hub", "projects"] as const;
 
-/** project islands with real geometry — P2 completes the archipelago */
-export const BUILT_ISLANDS = ["meridian"] as const;
+/** project islands with real geometry */
+export const BUILT_ISLANDS = ["meridian", "tark", "campuscab"] as const;
 
 export const REALM_LABELS: Record<RealmId, string> = {
   hub: "The Hub",

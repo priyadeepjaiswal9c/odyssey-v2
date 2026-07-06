@@ -8,9 +8,9 @@
 
 ## Milestone checklist
 
-- [ ] **P0** — Repo init, BUILD_STATE, Next.js scaffold + deps ← **CURRENT**
-- [ ] **P1** — SSR core + Hub + Meridian island (hero + fox + showcase) + Kip + tour skeleton + warm sky
-- [ ] **P2** — Full Projects archipelago (TARK, Campus Cab)
+- [x] **P0** — Repo init, BUILD_STATE, Next.js scaffold + deps ✅ c952dee
+- [x] **P1/P1R** — SSR core + Hub + Meridian (RTX pivot applied: PBR, start menu, audio, narrator cut, control-tower rebuild) ✅ c1e54b7
+- [ ] **P2** — Full Projects archipelago (TARK, Campus Cab) ← **CURRENT**
 - [ ] **P3** — Experience village + Achievements Hall of Statues + About home base
 - [ ] **P4** — Tour polish + Kip personality + easter eggs + day/night + sound/particles
 - [ ] **P5** — APEX feed integration + mobile/perf tiers + a11y + wow finish
@@ -27,8 +27,12 @@
 
 ## Current state
 
-P1 (redirected): engine + hub + Meridian + tour verified working in Chrome pre-pivot.
-Now pivoting: PBR material classes in mesher → realistic sky/lighting → postprocessing → narrator removal → start menu + audio → Meridian rebuilt as control-tower/power-grid.
+P1R done + verified (screenshot suite `/tmp/kalpana-shots`, interactive click-through, zero page errors, prod build 107kB first-load). Starting P2: TARK courthouse/library island + Campus Cab transit-hub island, then flip `BUILT_ISLANDS` in `src/world/registry.ts`.
+
+**Workflow guards (learned hard):**
+- NEVER `npm run build` while `next dev` runs — they share `.next/` and corrupt each other. Stop dev → build → restart dev.
+- Visual verify: `node scripts/shot.mjs` (headed isolated Chrome; R3F v9 won't boot in hidden/occluded tabs or headless — by design it recovers on visibility, so prod is fine).
+- `__kalpana.snap()` must kill GSAP flights (done) or teleports get overridden.
 
 ## Decisions log
 
