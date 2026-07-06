@@ -1,0 +1,329 @@
+/* ————————————————————————————————————————————————
+   Kalpana design system — golden-hour warm, cozy + cosmic
+   ———————————————————————————————————————————————— */
+
+:root {
+  /* palette — dusk sky + golden hour */
+  --dusk-deep: #241333;
+  --dusk: #2b1b3d;
+  --plum: #4a3b6b;
+  --mauve: #a86ea0;
+  --ember: #ff9e64;
+  --apricot: #ffbe7d;
+  --honey: #ffd9a0;
+  --cream: #fff3dd;
+  --gold: #ffb84d;
+  --glow: #ffe9c4;
+  --sage: #8fb96a;
+  --teal: #7fd4c1;
+
+  --ink: #2d1f3d;
+  --paper: #fff8ec;
+
+  --font-body: var(--font-body, ui-rounded, "Nunito", system-ui, sans-serif);
+  --font-display: var(--font-display, "Pixelify Sans", monospace);
+
+  --radius: 14px;
+  --shadow-soft: 0 8px 32px rgba(36, 19, 51, 0.35);
+  --shadow-glow: 0 0 24px rgba(255, 184, 77, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--dusk);
+  color: var(--cream);
+  /* scrollable document by default (no-JS / reduced-motion / crawler case);
+     the world layer locks scroll only when it's actually running */
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+body[data-world="on"] {
+  overflow: hidden;
+}
+
+a {
+  color: var(--gold);
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--dusk-deep);
+}
+
+/* ————— scrollbars (panels) ————— */
+.panel-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 184, 77, 0.35);
+  border-radius: 8px;
+}
+
+/* ————— utility ————— */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ————————————————————————————————————————————————
+   Text core (SSR résumé) — must be lovely standing alone
+   ———————————————————————————————————————————————— */
+
+.rc {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 56px 28px 80px;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(255, 158, 100, 0.14), transparent 60%),
+    transparent;
+  line-height: 1.6;
+}
+
+.rc-kicker {
+  font-family: var(--font-display);
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.rc h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 6vw, 3.4rem);
+  color: var(--glow);
+  line-height: 1.05;
+  text-shadow: 0 0 32px rgba(255, 184, 77, 0.35);
+}
+
+.rc-label {
+  color: var(--apricot);
+  font-size: 1.12rem;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.rc-summary {
+  margin-top: 14px;
+  color: rgba(255, 243, 221, 0.85);
+  max-width: 62ch;
+}
+
+.rc-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 18px;
+  font-size: 0.95rem;
+}
+
+.rc-links a {
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 184, 77, 0.4);
+}
+
+.rc-links a:hover {
+  color: var(--glow);
+  border-bottom-color: var(--glow);
+}
+
+.rc-loc {
+  color: rgba(255, 243, 221, 0.55);
+}
+
+.rc section {
+  margin-top: 52px;
+}
+
+.rc h2 {
+  font-family: var(--font-display);
+  color: var(--ember);
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(255, 158, 100, 0.25);
+  margin-bottom: 20px;
+}
+
+.rc-item {
+  margin-bottom: 28px;
+}
+
+.rc h3 {
+  color: var(--honey);
+  font-size: 1.12rem;
+}
+
+.rc-tags {
+  color: var(--mauve);
+  font-size: 0.88rem;
+  margin: 3px 0 8px;
+  font-weight: 600;
+}
+
+.rc-item-summary {
+  color: rgba(255, 243, 221, 0.8);
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.rc ul {
+  padding-left: 1.2em;
+}
+
+.rc li {
+  margin-bottom: 5px;
+  color: rgba(255, 243, 221, 0.9);
+}
+
+.rc-item-links {
+  margin-top: 8px;
+  display: flex;
+  gap: 16px;
+}
+
+.rc-item-links a {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.rc-awards {
+  list-style: none;
+  padding: 0;
+}
+
+.rc-awards li {
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: rgba(255, 184, 77, 0.07);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+}
+
+.rc-skills div {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px dashed rgba(168, 110, 160, 0.25);
+}
+
+.rc-skills dt {
+  color: var(--apricot);
+  font-weight: 700;
+}
+
+.rc-skills dd {
+  color: rgba(255, 243, 221, 0.85);
+}
+
+@media (max-width: 560px) {
+  .rc-skills div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+.rc-footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 2px solid rgba(255, 158, 100, 0.25);
+  color: rgba(255, 243, 221, 0.6);
+  font-size: 0.92rem;
+}
+
+/* ————— world layer + loader ————— */
+
+.world-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--dusk);
+}
+
+.world-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  background: var(--dusk);
+}
+
+.world-loader-glow {
+  width: 18px;
+  height: 18px;
+  margin: 0 auto 22px;
+  background: var(--gold);
+  border-radius: 3px;
+  box-shadow: 0 0 40px 12px rgba(255, 184, 77, 0.5);
+  animation: loader-bob 1.4s ease-in-out infinite;
+}
+
+@keyframes loader-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(90deg); }
+}
+
+.world-loader-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--glow);
+  letter-spacing: 0.06em;
+}
+
+.world-loader-sub {
+  color: var(--mauve);
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
+
+.enter-world-btn {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 20;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--dusk-deep);
+  background: linear-gradient(135deg, var(--gold), var(--ember));
+  border: none;
+  border-radius: 999px;
+  padding: 13px 22px;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft), var(--shadow-glow);
+  transition: transform 0.15s ease;
+}
+
+.enter-world-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.enter-world-btn small {
+  font-family: var(--font-body);
+  opacity: 0.7;
+  margin-left: 6px;
+}
