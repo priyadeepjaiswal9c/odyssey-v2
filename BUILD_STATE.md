@@ -2,7 +2,7 @@
 
 *A cozy, generational-quality voxel portfolio world. Master prompt: `MASTER-PROMPT-odyssey-v2.md` · Scope: `ideation-odyssey-v2.md` · Rules: `../00-BUILD-PLAN.md`*
 
-**Status:** 🟢 BUILDING · Started 2026-07-06
+**Status:** ✅ BUILD COMPLETE (Definition of Done) · 2026-07-06 · one item in Human Review (the production deploy)
 
 ---
 
@@ -10,11 +10,11 @@
 
 - [x] **P0** — Repo init, BUILD_STATE, Next.js scaffold + deps ✅ c952dee
 - [x] **P1/P1R** — SSR core + Hub + Meridian (RTX pivot applied: PBR, start menu, audio, narrator cut, control-tower rebuild) ✅ c1e54b7
-- [ ] **P2** — Full Projects archipelago (TARK, Campus Cab) ← **CURRENT**
-- [ ] **P3** — Experience village + Achievements Hall of Statues + About home base
-- [ ] **P4** — Tour polish + Kip personality + easter eggs + day/night + sound/particles
-- [ ] **P5** — APEX feed integration + mobile/perf tiers + a11y + wow finish
-- [ ] **DoD** — Verified end-to-end · deployed to Vercel · live URL recorded · README
+- [x] **P2** — Full Projects archipelago (TARK courthouse-library, Campus Cab transit hub) ✅ 933373d
+- [x] **P3** — Experience village + Hall of Achievements + About home base ✅ 57d0758
+- [x] **P4** — Day/night + particles + Kip personality + easter eggs + cinematic flights ✅ 83537f2
+- [x] **P5** — Feed contract verified + perf governor + a11y + favicon + README ✅ e31af70
+- [x] **DoD** — Verified end-to-end (17-stop suite, interactive tour, mobile, SSR crawl, zero page errors) · README ✅ · **deploy queued to Human Review** ⬇
 
 ## ⚡ DIRECTION UPDATE — LOCKED 2026-07-06 (supersedes conflicts)
 
@@ -56,7 +56,11 @@ P1R done + verified (screenshot suite `/tmp/kalpana-shots`, interactive click-th
 
 ## Human Review queue
 
-- (empty — deploy lands here only if Vercel unauthed at DoD)
+1. **Production deploy** — Vercel CLI is installed via npx and **authenticated** (`priyadeepjaiswal9c-7613`); the harness permission gate classified the prod deploy as human-review territory. Everything is verified and ready. To ship, run:
+   ```bash
+   cd odyssey-v2 && npx vercel --prod --yes
+   ```
+   Then paste the live URL here. (Custom domain purchase, if desired, is also Human Review per plan.)
 
 ## Session notes
 
