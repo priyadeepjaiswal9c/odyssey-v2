@@ -1,14 +1,14 @@
-import { BLOCK_DEFS } from "./palette";
+import { BLOCK_DEFS, type MatClass } from "./palette";
 import { hash3 } from "./rng";
 import type { VoxelModel } from "./model";
 
 /**
- * Greedy mesher with baked lighting:
- *  - per-vertex ambient occlusion (classic 3-neighbor formula)
- *  - directional face tints (warm sun from +X/+Y, plum-shifted shadow sides)
- *  - quantized per-block color jitter (part of the merge key → tonal patches)
- * Emissive blocks go to a separate unlit "glow" geometry, plus halo points
- * for additive sprite glows.
+ * Greedy mesher for the RTX pipeline:
+ *  - output geometry grouped by material class (matte/gloss/metal/water/glow)
+ *  - per-vertex ambient occlusion baked into vertex colors (warm-neutral)
+ *  - soft directional tints + quantized per-block jitter (merge-key aware)
+ * Real lighting (sun + env + shadows + bloom) does the heavy lifting now;
+ * the bakes just keep crevices grounded and surfaces alive.
  */
 
 export interface MeshBuffers {
@@ -24,40 +24,47 @@ export interface GlowHalo {
   count: number;
 }
 
+export type MeshGroups = Partial<Record<MatClass, MeshBuffers>>;
+
 export interface MeshResult {
-  lit: MeshBuffers;
-  glow: MeshBuffers;
+  groups: MeshGroups;
   halos: GlowHalo[];
 }
 
-// —— face tints: sun low from the +X horizon, warm tops, plum shadows ——
-const FACE_TINT: Record<string, { mult: number; plum: number }> = {
-  "+y": { mult: 1.14, plum: 0 },
-  "-y": { mult: 0.5, plum: 0.35 },
-  "+x": { mult: 1.04, plum: 0 },
-  "-x": { mult: 0.72, plum: 0.25 },
-  "+z": { mult: 0.92, plum: 0.1 },
-  "-z": { mult: 0.78, plum: 0.2 },
+// —— gentle face tints: sun low from +X, warm tops, umber-shadowed undersides ——
+const FACE_TINT: Record<string, { mult: number; umber: number }> = {
+  "+y": { mult: 1.06, umber: 0 },
+  "-y": { mult: 0.6, umber: 0.28 },
+  "+x": { mult: 1.0, umber: 0 },
+  "-x": { mult: 0.84, umber: 0.12 },
+  "+z": { mult: 0.94, umber: 0.05 },
+  "-z": { mult: 0.88, umber: 0.1 },
 };
 
-const AO_MULT = [0.5, 0.67, 0.84, 1.0];
-const AO_PLUM = [0.38, 0.24, 0.1, 0];
-const PLUM = hexToRgb("#4a3b6b");
+const AO_MULT = [0.55, 0.72, 0.87, 1.0];
+const AO_UMBER = [0.3, 0.18, 0.08, 0];
+const UMBER = hexToRgb("#4a3626");
 const JITTER_LEVELS = 5;
-const JITTER_SPAN = 0.09; // ±9% value variation across levels
+const JITTER_SPAN = 0.08;
 
 export function meshVoxels(model: VoxelModel): MeshResult {
   const dims = [model.nx, model.ny, model.nz];
-  const lit = new GeoAcc();
-  const glow = new GeoAcc();
+  const accs = new Map<MatClass, GeoAcc>();
+  const acc = (c: MatClass) => {
+    let a = accs.get(c);
+    if (!a) {
+      a = new GeoAcc();
+      accs.set(c, a);
+    }
+    return a;
+  };
   const emissivePts: { x: number; y: number; z: number; id: number }[] = [];
 
-  // collect emissive block centers for halos
   for (let z = 0; z < model.nz; z++)
     for (let y = 0; y < model.ny; y++)
       for (let x = 0; x < model.nx; x++) {
         const id = model.get(x, y, z);
-        if (id && (BLOCK_DEFS[id].emissive ?? 0) > 0)
+        if (id && BLOCK_DEFS[id].mat === "glow")
           emissivePts.push({ x, y, z, id });
       }
 
@@ -69,7 +76,6 @@ export function meshVoxels(model: VoxelModel): MeshResult {
     const nu = dims[u];
     const nv = dims[v];
 
-    // mask entries: 0 = no face, else packed key; parallel arrays hold detail
     const maskKey = new Int32Array(nu * nv);
     const maskAO = new Uint8Array(nu * nv * 4);
     const maskId = new Uint8Array(nu * nv);
@@ -92,10 +98,9 @@ export function meshVoxels(model: VoxelModel): MeshResult {
 
           const sign = a !== 0 ? 1 : -1;
           const id = a !== 0 ? a : b;
-          const emptyD = a !== 0 ? s : s - 1; // layer AO samples live in
+          const emptyD = a !== 0 ? s : s - 1;
           const blockPos = a !== 0 ? [...pa] : [...pb];
 
-          // AO for the 4 corners of this cell
           const m = i + nu * j;
           const q = [0, 0, 0];
           const solidAt = (du: number, dv: number) => {
@@ -104,7 +109,6 @@ export function meshVoxels(model: VoxelModel): MeshResult {
             q[v] = j + dv;
             return solid(q) ? 1 : 0;
           };
-          // corners in (u,v): (0,0) (1,0) (1,1) (0,1)
           const corners: [number, number][] = [[0, 0], [1, 0], [1, 1], [0, 1]];
           let aoPack = 0;
           for (let c = 0; c < 4; c++) {
@@ -112,8 +116,7 @@ export function meshVoxels(model: VoxelModel): MeshResult {
             const side1 = solidAt(ca ? 1 : -1, 0);
             const side2 = solidAt(0, cb ? 1 : -1);
             const diag = solidAt(ca ? 1 : -1, cb ? 1 : -1);
-            const ao =
-              side1 && side2 ? 0 : 3 - (side1 + side2 + diag);
+            const ao = side1 && side2 ? 0 : 3 - (side1 + side2 + diag);
             maskAO[m * 4 + c] = ao;
             aoPack = (aoPack << 2) | ao;
           }
@@ -127,7 +130,6 @@ export function meshVoxels(model: VoxelModel): MeshResult {
 
           maskId[m] = id;
           maskSign[m] = sign;
-          // key: id(7b) sign(1b) ao(8b) jitter(3b) — nonzero when face exists
           maskKey[m] =
             1 | (id << 1) | ((sign > 0 ? 1 : 0) << 8) | (aoPack << 9) | (jitter << 17);
           any = true;
@@ -135,7 +137,6 @@ export function meshVoxels(model: VoxelModel): MeshResult {
 
       if (!any) continue;
 
-      // greedy merge
       for (let j = 0; j < nv; j++) {
         for (let i = 0; i < nu; ) {
           const m = i + nu * j;
@@ -169,16 +170,11 @@ export function meshVoxels(model: VoxelModel): MeshResult {
     }
   }
 
-  // halos: cluster emissive blocks on a coarse grid
-  const halos = clusterHalos(emissivePts);
+  const groups: MeshGroups = {};
+  for (const [cls, a] of accs) groups[cls] = a.buffers();
 
-  return {
-    lit: lit.buffers(),
-    glow: glow.buffers(),
-    halos,
-  };
+  return { groups, halos: clusterHalos(emissivePts) };
 
-  // — emit one greedy quad into the right accumulator —
   function emitQuad(
     id: number,
     d: number, u: number, v: number,
@@ -188,14 +184,14 @@ export function meshVoxels(model: VoxelModel): MeshResult {
     jitter: number
   ) {
     const def = BLOCK_DEFS[id];
-    const isGlow = (def.emissive ?? 0) > 0;
-    const acc = isGlow ? glow : lit;
+    const cls: MatClass = def.mat ?? "matte";
+    const out = acc(cls);
+    const isGlow = cls === "glow";
 
     const dirName =
       (sign > 0 ? "+" : "-") + (d === 0 ? "x" : d === 1 ? "y" : "z");
     const tint = FACE_TINT[dirName];
 
-    // corners in (u,v) space
     const cs: [number, number][] = [
       [i, j], [i + w, j], [i + w, j + h], [i, j + h],
     ];
@@ -217,24 +213,23 @@ export function meshVoxels(model: VoxelModel): MeshResult {
 
     const vColors = ao.map((a) => {
       if (isGlow) {
-        // glow faces: full color, slight AO-free brightness by emissive
+        // glow: uniform HDR-ready color (material boosts past 1.0 for bloom)
         const e = def.emissive ?? 0.5;
         return [
-          srgbToLinear(Math.min(1, base[0] * (0.85 + e * 0.5))),
-          srgbToLinear(Math.min(1, base[1] * (0.85 + e * 0.5))),
-          srgbToLinear(Math.min(1, base[2] * (0.85 + e * 0.5))),
+          srgbToLinear(Math.min(1, base[0] * (0.8 + e * 0.4))),
+          srgbToLinear(Math.min(1, base[1] * (0.8 + e * 0.4))),
+          srgbToLinear(Math.min(1, base[2] * (0.8 + e * 0.4))),
         ] as [number, number, number];
       }
       const mult = tint.mult * AO_MULT[a] * jitterMult;
-      const plumMix = Math.min(1, tint.plum + AO_PLUM[a]);
+      const umberMix = Math.min(1, tint.umber + AO_UMBER[a]);
       return [
-        srgbToLinear(mix(base[0] * mult, PLUM[0], plumMix)),
-        srgbToLinear(mix(base[1] * mult, PLUM[1], plumMix)),
-        srgbToLinear(mix(base[2] * mult, PLUM[2], plumMix)),
+        srgbToLinear(mix(base[0] * mult, UMBER[0], umberMix)),
+        srgbToLinear(mix(base[1] * mult, UMBER[1], umberMix)),
+        srgbToLinear(mix(base[2] * mult, UMBER[2], umberMix)),
       ] as [number, number, number];
     });
 
-    // AO-aware diagonal: flip when it lights better
     const flip = ao[0] + ao[2] < ao[1] + ao[3];
     let tri: number[][];
     if (sign > 0) {
@@ -243,7 +238,7 @@ export function meshVoxels(model: VoxelModel): MeshResult {
       tri = flip ? [[1, 3, 2], [1, 0, 3]] : [[0, 2, 1], [0, 3, 2]];
     }
     for (const t of tri)
-      for (const k of t) acc.push(pts[k], normal, vColors[k]);
+      for (const k of t) out.push(pts[k], normal, vColors[k]);
   }
 }
 

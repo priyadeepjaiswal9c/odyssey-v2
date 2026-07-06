@@ -2,24 +2,63 @@
 
 import { useMemo, useEffect } from "react";
 import * as THREE from "three";
-import { meshVoxels, type MeshResult } from "@/lib/voxel/mesh";
+import { meshVoxels, type MeshResult, type MeshBuffers } from "@/lib/voxel/mesh";
+import type { MatClass } from "@/lib/voxel/palette";
 import type { VoxelModel } from "@/lib/voxel/model";
+import { useWorld } from "./store";
 
 /**
- * Renders a VoxelModel: one lit mesh (baked AO/tint vertex colors),
- * one unlit glow mesh, and additive halo sprites over emissive clusters.
+ * Renders a VoxelModel through the RTX pipeline: one mesh per material
+ * class, sharing module-level PBR materials (env-mapped), plus an HDR
+ * glow mesh that feeds bloom. Halo sprites only on the low tier.
  */
 
+// —— shared materials (created once; scene.environment feeds them) ——
+const MATERIALS: Record<Exclude<MatClass, "glow">, THREE.Material> = {
+  matte: new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.94,
+    metalness: 0.0,
+    envMapIntensity: 0.35,
+  }),
+  gloss: new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.22,
+    metalness: 0.06,
+    envMapIntensity: 1.1,
+  }),
+  metal: new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.32,
+    metalness: 0.88,
+    envMapIntensity: 1.35,
+  }),
+  water: new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.06,
+    metalness: 0.0,
+    transparent: true,
+    opacity: 0.86,
+    envMapIntensity: 1.6,
+  }),
+};
+
+// glow: unlit, HDR-boosted past 1.0 so bloom catches it
+const GLOW_MATERIAL = new THREE.MeshBasicMaterial({
+  vertexColors: true,
+  toneMapped: false,
+  color: new THREE.Color(1.9, 1.9, 1.9),
+});
+
+const SHADOW_CLASSES: ReadonlySet<string> = new Set(["matte", "gloss", "metal"]);
+
 export interface VoxelMeshProps {
-  /** built once per deps change — keep it pure + deterministic */
   build: () => VoxelModel;
-  /** memo key — rebuild when these change */
   deps?: readonly unknown[];
-  /** 'bottom' = x/z centered, y=0 at model floor (default) · 'origin' = raw model coords */
+  /** 'bottom' = x/z centered, y=0 at model floor (default) · 'origin' = raw coords */
   anchor?: "bottom" | "origin" | "center";
   castShadow?: boolean;
   receiveShadow?: boolean;
-  /** clamp on halo sprite count (biggest clusters win) */
   maxHalos?: number;
   haloScale?: number;
   position?: [number, number, number];
@@ -31,19 +70,24 @@ export function VoxelMesh({
   build,
   deps = [],
   anchor = "bottom",
-  castShadow = false,
-  receiveShadow = false,
+  castShadow = true,
+  receiveShadow = true,
   maxHalos = 6,
   haloScale = 1,
   position,
   rotation,
   scale,
 }: VoxelMeshProps) {
-  const { litGeo, glowGeo, halos, offset } = useMemo(() => {
+  const quality = useWorld((s) => s.quality);
+
+  const { geos, halos, offset } = useMemo(() => {
     const model = build();
     const res: MeshResult = meshVoxels(model);
-    const litGeo = toGeometry(res.lit);
-    const glowGeo = res.glow.positions.length ? toGeometry(res.glow) : null;
+    const geos: { cls: MatClass; geo: THREE.BufferGeometry }[] = [];
+    for (const [cls, buf] of Object.entries(res.groups) as [MatClass, MeshBuffers][]) {
+      if (!buf || buf.positions.length === 0) continue;
+      geos.push({ cls, geo: toGeometry(buf) });
+    }
     const offset: [number, number, number] =
       anchor === "bottom"
         ? [-model.nx / 2, 0, -model.nz / 2]
@@ -53,63 +97,59 @@ export function VoxelMesh({
     const halos = [...res.halos]
       .sort((a, b) => b.count - a.count)
       .slice(0, maxHalos);
-    return { litGeo, glowGeo, halos, offset };
+    return { geos, halos, offset };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(
     () => () => {
-      litGeo.dispose();
-      glowGeo?.dispose();
+      for (const { geo } of geos) geo.dispose();
     },
-    [litGeo, glowGeo]
+    [geos]
   );
+
+  // bloom replaces halos on high/medium; sprites only for the low tier
+  const showHalos = quality === "low";
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
       <group position={offset}>
-        <mesh
-          geometry={litGeo}
-          castShadow={castShadow}
-          receiveShadow={receiveShadow}
-        >
-          <meshLambertMaterial vertexColors />
-        </mesh>
-        {glowGeo && (
-          <mesh geometry={glowGeo}>
-            <meshBasicMaterial vertexColors toneMapped={false} />
-          </mesh>
-        )}
-        {halos.map((h, i) => (
-          <sprite
-            key={i}
-            position={h.pos}
-            scale={
-              (2.2 + Math.min(6, Math.sqrt(h.count)) * 1.4) *
-              h.strength *
-              haloScale
-            }
-          >
-            <spriteMaterial
-              map={getHaloTexture()}
-              color={h.color}
-              transparent
-              opacity={0.55 * h.strength}
-              blending={THREE.AdditiveBlending}
-              depthWrite={false}
-            />
-          </sprite>
+        {geos.map(({ cls, geo }) => (
+          <mesh
+            key={cls}
+            geometry={geo}
+            material={cls === "glow" ? GLOW_MATERIAL : MATERIALS[cls as Exclude<MatClass, "glow">]}
+            castShadow={castShadow && SHADOW_CLASSES.has(cls)}
+            receiveShadow={receiveShadow && SHADOW_CLASSES.has(cls)}
+          />
         ))}
+        {showHalos &&
+          halos.map((h, i) => (
+            <sprite
+              key={i}
+              position={h.pos}
+              scale={
+                (2.2 + Math.min(6, Math.sqrt(h.count)) * 1.4) *
+                h.strength *
+                haloScale
+              }
+            >
+              <spriteMaterial
+                map={getHaloTexture()}
+                color={h.color}
+                transparent
+                opacity={0.5 * h.strength}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </sprite>
+          ))}
       </group>
     </group>
   );
 }
 
-function toGeometry(buf: {
-  positions: Float32Array;
-  normals: Float32Array;
-  colors: Float32Array;
-}): THREE.BufferGeometry {
+function toGeometry(buf: MeshBuffers): THREE.BufferGeometry {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(buf.positions, 3));
   geo.setAttribute("normal", new THREE.BufferAttribute(buf.normals, 3));
@@ -118,7 +158,7 @@ function toGeometry(buf: {
   return geo;
 }
 
-// —— shared radial glow texture (lazy singleton) ——
+// —— shared radial glow texture (lazy singleton, low-tier halos) ——
 let haloTex: THREE.CanvasTexture | null = null;
 
 export function getHaloTexture(): THREE.CanvasTexture {

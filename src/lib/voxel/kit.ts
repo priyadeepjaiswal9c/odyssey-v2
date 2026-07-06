@@ -72,7 +72,7 @@ export function tree(m: VoxelModel, x: number, y: number, z: number, seed: numbe
   const h = size === "s" ? 3 : size === "m" ? 5 : 7;
   const cr = size === "s" ? 2 : size === "m" ? 3 : 4;
   m.fill(x, y, z, x, y + h - 1, z, B.wood);
-  const leaf = r() > 0.8 ? B.leavesPink : B.leaves;
+  const leaf = r() > 0.8 ? B.leavesCoral : B.leaves;
   const leafDark = leaf === B.leaves ? B.leavesDark : B.leaves;
   // canopy: stacked squashed spheres with jitter
   m.ellipsoid(x, y + h + cr - 1, z, cr + 0.6, cr, cr + 0.6, leaf);
@@ -95,7 +95,7 @@ export function lampPost(m: VoxelModel, x: number, y: number, z: number, height 
 /** Scatter flowers/grass tufts on a surface region. */
 export function flowers(m: VoxelModel, x0: number, z0: number, x1: number, z1: number, yOf: (x: number, z: number) => number, seed: number, density = 0.06): void {
   const r = rng(seed);
-  const picks = [B.leavesPink, B.gold, B.white, B.bookRed];
+  const picks = [B.leavesCoral, B.white, B.bookRed, B.sand];
   for (let x = x0; x <= x1; x++)
     for (let z = z0; z <= z1; z++) {
       if (r() > density) continue;

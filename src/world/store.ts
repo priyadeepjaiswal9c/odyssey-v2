@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { audio } from "@/lib/audio";
 
 export type RealmId =
   | "hub"
@@ -18,20 +19,26 @@ export interface TourStop {
   target: [number, number, number];
   /** where Kip hovers at this stop */
   kip: [number, number, number];
-  /** Kip's line, in Priyadeep's voice */
-  line: string;
   /** project slug → showcase card in HUD */
   showcase?: string;
-  /** auto-tour hold after the line finishes typing (ms) */
+  /** auto-tour hold at this stop (ms) */
   holdMs?: number;
 }
 
 interface WorldState {
-  // — layer —
+  // — layers —
   worldActive: boolean;
   setWorldActive: (on: boolean) => void;
   quality: Quality;
   setQuality: (q: Quality) => void;
+  /** start menu → world */
+  phase: "menu" | "world";
+  /** first gesture: unlock audio, leave the menu, optionally start touring */
+  enterWorld: (dest: "tour" | RealmId) => void;
+
+  // — audio —
+  muted: boolean;
+  toggleMuted: () => void;
 
   // — tour —
   stops: TourStop[];
@@ -39,7 +46,6 @@ interface WorldState {
   stopIndex: number;
   targetIndex: number | null; // non-null while flying
   touring: boolean;
-  dialogue: { text: string; key: string } | null;
   showcaseSlug: string | null;
   /** realms currently mounted (destination mounts before flight) */
   mounted: RealmId[];
@@ -52,8 +58,6 @@ interface WorldState {
   pauseTour: () => void;
   goToRealm: (realm: RealmId) => void;
   dismissShowcase: () => void;
-  /** transient Kip line (reactions, easter eggs) */
-  say: (text: string) => void;
 }
 
 export const useWorld = create<WorldState>((set, get) => ({
@@ -68,18 +72,27 @@ export const useWorld = create<WorldState>((set, get) => ({
   quality: "high",
   setQuality: (quality) => set({ quality }),
 
+  phase: "menu",
+  enterWorld: (dest) => {
+    audio.unlock();
+    audio.click();
+    set({ phase: "world", muted: audio.muted });
+    if (dest === "tour") get().startTour();
+    else if (dest !== "hub") get().goToRealm(dest);
+  },
+
+  muted: false,
+  toggleMuted: () => {
+    const m = !get().muted;
+    audio.setMuted(m);
+    set({ muted: m });
+  },
+
   stops: [],
-  setStops: (stops) =>
-    set((s) => ({
-      stops,
-      // show the first stop's line on boot
-      dialogue:
-        s.dialogue ?? (stops[0] ? { text: stops[0].line, key: stops[0].id } : null),
-    })),
+  setStops: (stops) => set({ stops }),
   stopIndex: 0,
   targetIndex: null,
   touring: false,
-  dialogue: null,
   showcaseSlug: null,
   mounted: ["hub"],
 
@@ -91,8 +104,6 @@ export const useWorld = create<WorldState>((set, get) => ({
     set((s) => ({
       targetIndex: index,
       showcaseSlug: null,
-      dialogue: null,
-      // mount destination realm alongside current for the flight
       mounted: s.mounted.includes(stop.realm)
         ? s.mounted
         : [...s.mounted, stop.realm],
@@ -103,12 +114,12 @@ export const useWorld = create<WorldState>((set, get) => ({
     const { targetIndex, stops } = get();
     if (targetIndex === null) return;
     const stop = stops[targetIndex];
+    audio.chime();
     set({
       stopIndex: targetIndex,
       targetIndex: null,
-      dialogue: { text: stop.line, key: stop.id },
       showcaseSlug: stop.showcase ?? null,
-      // keep only the realm we're in (one-realm-at-a-time rule)
+      // one-realm-at-a-time rule
       mounted: [stop.realm],
     });
   },
@@ -128,9 +139,9 @@ export const useWorld = create<WorldState>((set, get) => ({
   startTour: () => {
     const { stopIndex, stops } = get();
     set({ touring: true });
-    // if at the end, restart from the top
-    if (stopIndex >= stops.length - 1) get().goTo(0);
-    else get().next();
+    // at the end → restart from the top; otherwise hold here first —
+    // TourDriver advances after the stop's holdMs
+    if (stopIndex >= stops.length - 1 && stops.length > 1) get().goTo(0);
   },
 
   pauseTour: () => set({ touring: false }),
@@ -145,6 +156,4 @@ export const useWorld = create<WorldState>((set, get) => ({
   },
 
   dismissShowcase: () => set({ showcaseSlug: null }),
-
-  say: (text) => set({ dialogue: { text, key: `say-${text.slice(0, 18)}` } }),
 }));

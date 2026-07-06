@@ -2,21 +2,24 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Resume } from "@/content/types";
+import { audio } from "@/lib/audio";
 import { useWorld, type RealmId } from "@/world/store";
 import { REALMS } from "@/world/layout";
-import { BUILT_REALMS } from "@/world/stops";
+import { BUILT_REALMS } from "@/world/registry";
 
 /**
- * The HUD — Kalpana's UI bar. Wordmark, realm compass, Kip's dialogue
- * bar with tour controls, and the project showcase card.
+ * The HUD — wordmark, realm compass, mute, a minimal tour dock,
+ * and the project showcase card. No narrator: light + sound carry it.
  */
 export function Hud({ resume }: { resume: Resume }) {
+  const phase = useWorld((s) => s.phase);
+  if (phase === "menu") return null;
   return (
     <div className="hud">
       <Wordmark name={resume.basics.name} label={resume.basics.label} />
       <RealmNav />
       <ShowcaseCard resume={resume} />
-      <KipBar />
+      <TourDock />
     </div>
   );
 }
@@ -34,8 +37,9 @@ function Wordmark({ name, label }: { name: string; label: string }) {
 
 function RealmNav() {
   const goToRealm = useWorld((s) => s.goToRealm);
-  const say = useWorld((s) => s.say);
   const setWorldActive = useWorld((s) => s.setWorldActive);
+  const muted = useWorld((s) => s.muted);
+  const toggleMuted = useWorld((s) => s.toggleMuted);
   const stops = useWorld((s) => s.stops);
   const stopIndex = useWorld((s) => s.stopIndex);
   const currentRealm = stops[stopIndex]?.realm ?? "hub";
@@ -50,17 +54,25 @@ function RealmNav() {
           <button
             key={r}
             className={`hud-pill ${currentRealm === r ? "is-active" : ""} ${built ? "" : "is-soon"}`}
-            onClick={() =>
-              built
-                ? goToRealm(r)
-                : say(`${REALMS[r].label} is still growing — new islands sprout here soon! ✦`)
-            }
+            disabled={!built}
+            onClick={() => {
+              audio.click();
+              goToRealm(r);
+            }}
           >
             {REALMS[r].label}
             {!built && <span className="hud-soon">soon</span>}
           </button>
         );
       })}
+      <button
+        className="hud-pill hud-pill-icon"
+        onClick={toggleMuted}
+        aria-label={muted ? "Unmute sound" : "Mute sound"}
+        title={muted ? "Unmute" : "Mute"}
+      >
+        {muted ? "🔇" : "🔊"}
+      </button>
       <button
         className="hud-pill hud-pill-text"
         onClick={() => setWorldActive(false)}
@@ -72,64 +84,52 @@ function RealmNav() {
   );
 }
 
-function KipBar() {
-  const dialogue = useWorld((s) => s.dialogue);
+function TourDock() {
   const touring = useWorld((s) => s.touring);
   const targetIndex = useWorld((s) => s.targetIndex);
   const stopIndex = useWorld((s) => s.stopIndex);
   const stops = useWorld((s) => s.stops);
   const { next, prev, startTour, pauseTour } = useWorld.getState();
-
-  const typed = useTypewriter(dialogue?.text ?? "", dialogue?.key ?? "");
   const flying = targetIndex !== null;
 
-  // auto-tour: advance after the line finishes + hold
-  useEffect(() => {
-    if (!touring || flying || !dialogue) return;
-    const stop = stops[stopIndex];
-    const typeMs = dialogue.text.length * 26;
-    const holdMs = stop?.holdMs ?? 2400;
-    const t = setTimeout(() => {
-      const st = useWorld.getState();
-      if (st.stopIndex >= st.stops.length - 1) st.pauseTour();
-      else st.next();
-    }, typeMs + holdMs);
-    return () => clearTimeout(t);
-  }, [touring, flying, dialogue, stopIndex, stops]);
-
   return (
-    <div className="hud-kipbar">
-      <div className="hud-kip-avatar" aria-hidden>
-        <div className="hud-kip-glow" />
-      </div>
-      <p className="hud-dialogue" aria-live="polite">
-        {flying ? <span className="hud-flying">✦ · · ·</span> : typed}
-      </p>
-      <div className="hud-controls">
-        <button
-          className="hud-ctl"
-          onClick={prev}
-          disabled={stopIndex === 0 && !flying}
-          aria-label="Previous stop"
-        >
-          ◀
-        </button>
-        <button
-          className="hud-ctl hud-ctl-main"
-          onClick={touring ? pauseTour : startTour}
-          aria-label={touring ? "Pause tour" : "Take the tour"}
-        >
-          {touring ? "❚❚" : "take the tour ↓"}
-        </button>
-        <button
-          className="hud-ctl"
-          onClick={next}
-          disabled={stopIndex >= stops.length - 1 && !flying}
-          aria-label="Next stop"
-        >
-          ▶
-        </button>
-      </div>
+    <div className="hud-dock">
+      <button
+        className="hud-ctl"
+        onClick={() => {
+          audio.click();
+          prev();
+        }}
+        disabled={stopIndex === 0 && !flying}
+        aria-label="Previous stop"
+      >
+        ◀
+      </button>
+      <button
+        className="hud-ctl hud-ctl-main"
+        onClick={() => {
+          audio.click();
+          if (touring) pauseTour();
+          else startTour();
+        }}
+        aria-label={touring ? "Pause tour" : "Resume tour"}
+      >
+        {touring ? "❚❚" : "▶ tour"}
+      </button>
+      <button
+        className="hud-ctl"
+        onClick={() => {
+          audio.click();
+          next();
+        }}
+        disabled={stopIndex >= stops.length - 1 && !flying}
+        aria-label="Next stop"
+      >
+        ▶
+      </button>
+      <span className="hud-dock-count">
+        {Math.min((targetIndex ?? stopIndex) + 1, stops.length)} / {stops.length}
+      </span>
     </div>
   );
 }
@@ -137,7 +137,6 @@ function KipBar() {
 function ShowcaseCard({ resume }: { resume: Resume }) {
   const slug = useWorld((s) => s.showcaseSlug);
   const dismiss = useWorld((s) => s.dismissShowcase);
-  // keep last project while sliding out
   const [visible, setVisible] = useState(false);
   const lastSlug = useRef<string | null>(null);
   if (slug) lastSlug.current = slug;
@@ -179,25 +178,4 @@ function ShowcaseCard({ resume }: { resume: Resume }) {
       )}
     </aside>
   );
-}
-
-function useTypewriter(text: string, key: string, speed = 24): string {
-  const [n, setN] = useState(0);
-
-  useEffect(() => {
-    setN(0);
-    if (!text) return;
-    const iv = setInterval(() => {
-      setN((cur) => {
-        if (cur >= text.length) {
-          clearInterval(iv);
-          return cur;
-        }
-        return cur + 1;
-      });
-    }, speed);
-    return () => clearInterval(iv);
-  }, [text, key, speed]);
-
-  return text.slice(0, n);
 }

@@ -1,30 +1,26 @@
 /* ————————————————————————————————————————————————
-   Kalpana design system — golden-hour warm, cozy + cosmic
+   Kalpana design system — RTX golden hour. No purple.
    ———————————————————————————————————————————————— */
 
 :root {
-  /* palette — dusk sky + golden hour */
-  --dusk-deep: #241333;
-  --dusk: #2b1b3d;
-  --plum: #4a3b6b;
-  --mauve: #a86ea0;
+  /* palette — warm earth + golden hour */
+  --bg-deep: #1c150e;
+  --bg: #241c12;
+  --umber: #4a3626;
+  --clay: #b98a6a;
   --ember: #ff9e64;
   --apricot: #ffbe7d;
   --honey: #ffd9a0;
   --cream: #fff3dd;
   --gold: #ffb84d;
   --glow: #ffe9c4;
-  --sage: #8fb96a;
-  --teal: #7fd4c1;
-
-  --ink: #2d1f3d;
-  --paper: #fff8ec;
+  --steel: #8a939e;
 
   --font-body: var(--font-body, ui-rounded, "Nunito", system-ui, sans-serif);
   --font-display: var(--font-display, "Pixelify Sans", monospace);
 
   --radius: 14px;
-  --shadow-soft: 0 8px 32px rgba(36, 19, 51, 0.35);
+  --shadow-soft: 0 8px 32px rgba(18, 12, 6, 0.45);
   --shadow-glow: 0 0 24px rgba(255, 184, 77, 0.35);
 }
 
@@ -41,10 +37,10 @@ body {
 
 body {
   font-family: var(--font-body);
-  background: var(--dusk);
+  background: var(--bg);
   color: var(--cream);
-  /* scrollable document by default (no-JS / reduced-motion / crawler case);
-     the world layer locks scroll only when it's actually running */
+  /* scrollable document by default (no-JS / reduced-motion / crawler);
+     the world layer locks scroll only when it's running */
   overflow-y: auto;
   -webkit-font-smoothing: antialiased;
 }
@@ -59,10 +55,9 @@ a {
 
 ::selection {
   background: var(--gold);
-  color: var(--dusk-deep);
+  color: var(--bg-deep);
 }
 
-/* ————— scrollbars (panels) ————— */
 .panel-scroll::-webkit-scrollbar {
   width: 10px;
 }
@@ -74,7 +69,6 @@ a {
   border-radius: 8px;
 }
 
-/* ————— utility ————— */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -88,7 +82,7 @@ a {
 }
 
 /* ————————————————————————————————————————————————
-   Text core (SSR résumé) — must be lovely standing alone
+   Text core (SSR résumé) — lovely standing alone
    ———————————————————————————————————————————————— */
 
 .rc {
@@ -96,7 +90,7 @@ a {
   margin: 0 auto;
   padding: 56px 28px 80px;
   background:
-    radial-gradient(1200px 500px at 50% -10%, rgba(255, 158, 100, 0.14), transparent 60%),
+    radial-gradient(1200px 500px at 50% -10%, rgba(255, 158, 100, 0.13), transparent 60%),
     transparent;
   line-height: 1.6;
 }
@@ -177,7 +171,7 @@ a {
 }
 
 .rc-tags {
-  color: var(--mauve);
+  color: var(--clay);
   font-size: 0.88rem;
   margin: 3px 0 8px;
   font-weight: 600;
@@ -227,7 +221,7 @@ a {
   grid-template-columns: 180px 1fr;
   gap: 12px;
   padding: 7px 0;
-  border-bottom: 1px dashed rgba(168, 110, 160, 0.25);
+  border-bottom: 1px dashed rgba(185, 138, 106, 0.3);
 }
 
 .rc-skills dt {
@@ -260,7 +254,7 @@ a {
   position: fixed;
   inset: 0;
   z-index: 10;
-  background: var(--dusk);
+  background: var(--bg);
 }
 
 .world-loader {
@@ -270,7 +264,7 @@ a {
   display: grid;
   place-content: center;
   text-align: center;
-  background: var(--dusk);
+  background: var(--bg);
 }
 
 .world-loader-glow {
@@ -296,7 +290,7 @@ a {
 }
 
 .world-loader-sub {
-  color: var(--mauve);
+  color: var(--clay);
   margin-top: 6px;
   font-size: 0.95rem;
 }
@@ -308,7 +302,7 @@ a {
   z-index: 20;
   font-family: var(--font-display);
   font-size: 1.05rem;
-  color: var(--dusk-deep);
+  color: var(--bg-deep);
   background: linear-gradient(135deg, var(--gold), var(--ember));
   border: none;
   border-radius: 999px;
@@ -329,13 +323,163 @@ a {
 }
 
 /* ————————————————————————————————————————————————
-   HUD — the Kalpana UI bar
+   Start menu — Minecraft-style over the live world
+   ———————————————————————————————————————————————— */
+
+.menu {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  animation: menu-in 0.6s ease both;
+}
+
+@keyframes menu-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.menu-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(20, 14, 8, 0.25), rgba(20, 14, 8, 0.78) 78%);
+}
+
+.menu-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+}
+
+.menu-logo {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 9vw, 5.4rem);
+  letter-spacing: 0.1em;
+  color: var(--glow);
+  display: flex;
+}
+
+.menu-logo span {
+  display: inline-block;
+  text-shadow:
+    0 3px 0 #8a5a28,
+    0 6px 0 #4a3626,
+    0 9px 18px rgba(0, 0, 0, 0.55);
+  animation: logo-drop 0.7s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+@keyframes logo-drop {
+  from { transform: translateY(-46px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.menu-tagline {
+  color: rgba(255, 233, 196, 0.85);
+  font-size: 1rem;
+  margin: 2px 0 22px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: min(340px, 84vw);
+}
+
+/* — the Minecraft stone button — */
+.mc-btn {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  letter-spacing: 0.03em;
+  color: #f2f2ee;
+  text-shadow: 1px 2px 0 rgba(30, 30, 30, 0.9);
+  padding: 13px 18px 12px;
+  cursor: pointer;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.12)),
+    linear-gradient(#7e7e7e, #6a6a6a 40%, #585858);
+  border: 2px solid;
+  border-color: #b8b8b8 #2e2e2e #2e2e2e #b8b8b8;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 3px 0 #262626,
+    0 6px 14px rgba(0, 0, 0, 0.5);
+  transition: filter 0.08s ease, transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+/* stone grain */
+.mc-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23n)'/%3E%3C/svg%3E");
+  image-rendering: pixelated;
+}
+
+.mc-btn:hover:not(:disabled) {
+  filter: brightness(1.22);
+  border-color: #ffe9c4 #4a3a20 #4a3a20 #ffe9c4;
+  color: #fff8dc;
+}
+
+.mc-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.45),
+    0 0 0 #262626,
+    0 2px 6px rgba(0, 0, 0, 0.4);
+  border-color: #2e2e2e #b8b8b8 #b8b8b8 #2e2e2e;
+}
+
+.mc-btn:disabled {
+  cursor: default;
+  filter: saturate(0.4) brightness(0.72);
+  color: #b6b6b0;
+}
+
+.mc-btn small {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-left: 10px;
+  opacity: 0.75;
+  vertical-align: 2px;
+}
+
+.menu-text-link {
+  margin-top: 18px;
+  background: none;
+  border: none;
+  color: rgba(255, 233, 196, 0.75);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+}
+
+.menu-text-link:hover {
+  color: var(--glow);
+}
+
+/* ————————————————————————————————————————————————
+   HUD
    ———————————————————————————————————————————————— */
 
 .hud {
   position: absolute;
   inset: 0;
-  pointer-events: none; /* canvas gets the drags; buttons re-enable */
+  pointer-events: none;
   z-index: 5;
   font-family: var(--font-body);
 }
@@ -345,7 +489,6 @@ a {
   pointer-events: auto;
 }
 
-/* — wordmark — */
 .hud-wordmark {
   position: absolute;
   top: 20px;
@@ -353,7 +496,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  text-shadow: 0 2px 12px rgba(36, 19, 51, 0.8);
+  text-shadow: 0 2px 12px rgba(18, 12, 6, 0.85);
 }
 
 .hud-title {
@@ -369,7 +512,6 @@ a {
   letter-spacing: 0.04em;
 }
 
-/* — realm nav — */
 .hud-nav {
   position: absolute;
   top: 20px;
@@ -378,7 +520,7 @@ a {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
-  max-width: 60vw;
+  max-width: 62vw;
 }
 
 .hud-pill {
@@ -386,7 +528,7 @@ a {
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--cream);
-  background: rgba(43, 27, 61, 0.55);
+  background: rgba(28, 21, 14, 0.6);
   border: 1px solid rgba(255, 184, 77, 0.35);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -396,7 +538,7 @@ a {
   transition: all 0.18s ease;
 }
 
-.hud-pill:hover {
+.hud-pill:hover:not(:disabled) {
   border-color: var(--gold);
   background: rgba(255, 184, 77, 0.18);
   transform: translateY(-1px);
@@ -404,13 +546,15 @@ a {
 
 .hud-pill.is-active {
   background: linear-gradient(135deg, var(--gold), var(--ember));
-  color: var(--dusk-deep);
+  color: var(--bg-deep);
   border-color: transparent;
   box-shadow: var(--shadow-glow);
 }
 
-.hud-pill.is-soon {
-  opacity: 0.55;
+.hud-pill.is-soon,
+.hud-pill:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .hud-soon {
@@ -418,7 +562,7 @@ a {
   margin-left: 5px;
   padding: 1px 6px;
   border-radius: 99px;
-  background: rgba(168, 110, 160, 0.4);
+  background: rgba(185, 138, 106, 0.35);
   vertical-align: middle;
 }
 
@@ -426,93 +570,27 @@ a {
   border-style: dashed;
 }
 
-/* — Kip bar — */
-.hud-kipbar {
+.hud-pill-icon {
+  padding: 8px 11px;
+}
+
+/* — tour dock — */
+.hud-dock {
   position: absolute;
   left: 50%;
   bottom: 22px;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 14px;
-  width: min(720px, calc(100vw - 32px));
-  padding: 12px 16px;
-  background: rgba(36, 19, 51, 0.6);
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(28, 21, 14, 0.62);
   border: 1px solid rgba(255, 184, 77, 0.3);
-  border-radius: 18px;
+  border-radius: 999px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: var(--shadow-soft);
-}
-
-.hud-kip-avatar {
-  position: relative;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  background: linear-gradient(160deg, var(--glow), var(--gold));
-  border-radius: 9px;
-  box-shadow: 0 0 18px 4px rgba(255, 217, 138, 0.45);
-  animation: kip-bob 2.4s ease-in-out infinite;
-}
-
-.hud-kip-avatar::before,
-.hud-kip-avatar::after {
-  content: "";
-  position: absolute;
-  top: 13px;
-  width: 5px;
-  height: 7px;
-  border-radius: 2px;
-  background: var(--dusk-deep);
-}
-
-.hud-kip-avatar::before { left: 9px; }
-.hud-kip-avatar::after { right: 9px; }
-
-.hud-kip-glow {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  margin-left: -3px;
-  border-radius: 50%;
-  background: var(--glow);
-  box-shadow: 0 0 10px 3px rgba(255, 233, 196, 0.8);
-  animation: kip-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes kip-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-@keyframes kip-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.hud-dialogue {
-  flex: 1;
-  font-size: 0.95rem;
-  line-height: 1.45;
-  color: var(--cream);
-  min-height: 2.8em;
-  display: flex;
-  align-items: center;
-}
-
-.hud-flying {
-  color: var(--gold);
-  letter-spacing: 0.3em;
-  animation: kip-pulse 1s ease-in-out infinite;
-}
-
-.hud-controls {
-  display: flex;
-  gap: 6px;
-  flex: 0 0 auto;
+  pointer-events: auto;
 }
 
 .hud-ctl {
@@ -521,8 +599,8 @@ a {
   color: var(--cream);
   background: rgba(255, 184, 77, 0.12);
   border: 1px solid rgba(255, 184, 77, 0.35);
-  border-radius: 10px;
-  padding: 8px 12px;
+  border-radius: 999px;
+  padding: 8px 13px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -538,7 +616,7 @@ a {
 
 .hud-ctl-main {
   background: linear-gradient(135deg, var(--gold), var(--ember));
-  color: var(--dusk-deep);
+  color: var(--bg-deep);
   border: none;
   font-weight: 700;
   white-space: nowrap;
@@ -546,6 +624,13 @@ a {
 
 .hud-ctl-main:hover {
   filter: brightness(1.08);
+}
+
+.hud-dock-count {
+  font-size: 0.75rem;
+  color: rgba(255, 233, 196, 0.7);
+  padding: 0 6px 0 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* — showcase card — */
@@ -558,7 +643,7 @@ a {
   max-height: min(72vh, 640px);
   overflow-y: auto;
   padding: 22px 24px;
-  background: rgba(36, 19, 51, 0.72);
+  background: rgba(28, 21, 14, 0.74);
   border: 1px solid rgba(255, 184, 77, 0.35);
   border-radius: var(--radius);
   backdrop-filter: blur(16px);
@@ -607,7 +692,7 @@ a {
 }
 
 .hud-card-tags {
-  color: var(--mauve);
+  color: var(--clay);
   font-size: 0.8rem;
   font-weight: 700;
   margin: 6px 0 10px;
@@ -656,30 +741,28 @@ a {
   .hud-subtitle { display: none; }
   .hud-nav {
     top: auto;
-    bottom: 96px;
+    bottom: 84px;
     right: 50%;
     transform: translateX(50%);
     max-width: calc(100vw - 20px);
     justify-content: center;
   }
   .hud-pill { font-size: 0.72rem; padding: 6px 10px; }
-  .hud-kipbar {
-    bottom: 10px;
-    padding: 10px 12px;
-    gap: 10px;
+  .hud-dock {
+    bottom: 12px;
+    padding: 7px 10px;
   }
-  .hud-dialogue { font-size: 0.82rem; }
-  .hud-ctl-main { font-size: 0.72rem; }
   .hud-card {
     top: auto;
-    bottom: 150px;
+    bottom: 138px;
     right: 50%;
     transform: translateX(50%) translateY(20px);
-    max-height: 46vh;
+    max-height: 44vh;
     opacity: 0;
   }
   .hud-card.is-open {
     transform: translateX(50%) translateY(0);
     opacity: 1;
   }
+  .menu-logo { font-size: 2.6rem; }
 }

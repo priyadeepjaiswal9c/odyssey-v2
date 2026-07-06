@@ -19,9 +19,9 @@ export const HUB_SIGNS: Record<
   { pos: [number, number, number]; banner: number }
 > = {
   projects: { pos: [C - 11, HUB_TOP + 1, C - 7], banner: B.bannerTeal },
-  experience: { pos: [C + 11, HUB_TOP + 1, C - 7], banner: B.bannerPurple },
+  experience: { pos: [C + 11, HUB_TOP + 1, C - 7], banner: B.bannerCrimson },
   achievements: { pos: [C - 1, HUB_TOP + 1, C - 12], banner: B.trophyGold },
-  about: { pos: [C + 9, HUB_TOP + 1, C + 9], banner: B.leavesPink },
+  about: { pos: [C + 9, HUB_TOP + 1, C + 9], banner: B.leavesCoral },
 };
 
 export function buildHubIsland(): VoxelModel {
@@ -42,7 +42,7 @@ export function buildHubIsland(): VoxelModel {
   }
   // beacon: obsidian base, crystal column, floating gold spark
   m.set(C, y + 2, C, B.obsidian);
-  m.fill(C, y + 3, C, C, y + 4, C, B.crystal);
+  m.fill(C, y + 3, C, C, y + 4, C, B.warmLight);
   m.set(C, y + 6, C, B.gold);
 
   // — pond (dug into the grass, north-east) —
@@ -67,10 +67,10 @@ export function buildHubIsland(): VoxelModel {
     pathTo(m, C, C, pos[0], pos[2], y);
   }
 
-  // — trees + lamps + flowers —
-  tree(m, C - 8, y + 1, C + 6, 11, "m");
+  // — trees + lamps + flowers (kept clear of the shrine sightlines) —
+  tree(m, C - 12, y + 1, C + 10, 11, "m");
   tree(m, C + 4, y + 1, C - 10, 12, "l");
-  tree(m, C - 5, y + 1, C - 5, 13, "s");
+  tree(m, C - 7, y + 1, C - 8, 13, "s");
   lampPost(m, C + 6, y + 1, C + 10);
   lampPost(m, C - 12, y + 1, C + 2);
   flowers(

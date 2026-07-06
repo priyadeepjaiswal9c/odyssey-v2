@@ -7,15 +7,17 @@ import type { RealmId } from "./store";
  * 1 voxel = 1 world unit.
  */
 
-export const SUN_DIR = new THREE.Vector3(0.82, 0.42, 0.2).normalize();
+export const SUN_DIR = new THREE.Vector3(0.82, 0.34, 0.2).normalize();
 
+/** realistic golden hour — warm ambers into dusty blue, zero purple */
 export const SKY = {
-  zenith: "#453164",
-  high: "#7d5386",
-  horizon: "#e08a86",
-  glowBand: "#ff9e64",
-  sun: "#ffe9c4",
-  fog: "#c17d8e",
+  zenith: "#2e4a68",
+  high: "#6d87a0",
+  horizon: "#ffb060",
+  glowBand: "#ff8c38",
+  sun: "#fff2d8",
+  below: "#241c14",
+  fog: "#e0ae80",
 } as const;
 
 export interface RealmAnchor {

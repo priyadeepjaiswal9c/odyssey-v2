@@ -26,10 +26,10 @@ export default function ProjectsRealm({ resume }: { resume: Resume }) {
   return (
     <group>
       {has("meridian") && <MeridianIsland base={base} />}
-      {/* ambient satellite rocks for the whole archipelago */}
-      <FloatingRock position={[base[0] - 34, base[1] + 10, base[2] + 22]} seed={201} size={4} />
-      <FloatingRock position={[base[0] + 38, base[1] - 6, base[2] - 8]} seed={202} size={5} />
-      <FloatingRock position={[base[0] + 20, base[1] + 16, base[2] + 34]} seed={203} size={3} />
+      {/* ambient satellite rocks — kept out of every stop's camera corridor */}
+      <FloatingRock position={[base[0] - 44, base[1] + 12, base[2] + 26]} seed={201} size={4} />
+      <FloatingRock position={[base[0] + 40, base[1] - 8, base[2] - 34]} seed={202} size={5} />
+      <FloatingRock position={[base[0] - 26, base[1] + 18, base[2] - 42]} seed={203} size={3} />
     </group>
   );
 }

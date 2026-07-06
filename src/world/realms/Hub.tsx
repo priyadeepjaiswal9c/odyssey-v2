@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { audio } from "@/lib/audio";
 import { REALMS } from "../layout";
 import { useWorld, type RealmId } from "../store";
 import { VoxelMesh } from "../VoxelMesh";
 import { buildHubIsland, HUB_SIGNS, HUB_TOP } from "../structures/hub";
-import { BUILT_REALMS } from "../stops";
+import { BUILT_REALMS } from "../registry";
 import { FloatingRock } from "./common";
 
 /** The Hub — spawn island with the wayshrine and four realm signposts. */
@@ -37,7 +38,6 @@ function SignHotspot({
   local: [number, number, number];
 }) {
   const goToRealm = useWorld((s) => s.goToRealm);
-  const say = useWorld((s) => s.say);
   const [hover, setHover] = useState(false);
   const built = (BUILT_REALMS as readonly string[]).includes(realm);
 
@@ -46,16 +46,15 @@ function SignHotspot({
   const z = local[2] - 22;
   const y = local[1];
 
+  if (!built) return null; // silent world: unbuilt signs are decoration
+
   return (
     <mesh
       position={[x, y + 2, z]}
       onClick={(e) => {
         e.stopPropagation();
-        if (built) goToRealm(realm);
-        else
-          say(
-            `${REALMS[realm].label}? Ooh — still under construction. He's building fast, come back in a realm or two!`
-          );
+        audio.click();
+        goToRealm(realm);
       }}
       onPointerOver={() => {
         setHover(true);

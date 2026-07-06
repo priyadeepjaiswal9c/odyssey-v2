@@ -24,8 +24,8 @@ function buildKipBody(): VoxelModel {
   m.set(2, 4, 5, B.black);
   m.set(4, 4, 5, B.black);
   // rosy cheeks
-  m.set(1, 3, 5, B.leavesPink);
-  m.set(5, 3, 5, B.leavesPink);
+  m.set(1, 3, 5, B.leavesCoral);
+  m.set(5, 3, 5, B.leavesCoral);
   // antenna with glowing tip
   m.set(3, 6, 3, B.wood);
   m.set(3, 7, 3, B.kipGlow);

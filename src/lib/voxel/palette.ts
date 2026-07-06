@@ -1,61 +1,76 @@
 /**
- * Kalpana block palette — golden-hour warm.
- * Index 0 is air. `emissive` blocks render unlit + get glow halos.
+ * Kalpana block palette — RTX golden-hour. No purple.
+ * Every block belongs to a material class that maps to a PBR material:
+ *  matte (default) · gloss · metal · water · glow (emissive, bloom-fed)
  */
+
+export type MatClass = "matte" | "gloss" | "metal" | "water" | "glow";
 
 export interface BlockDef {
   name: string;
   color: string;
-  /** 0–1; >0 renders in the unlit glow pass */
+  /** material class — defaults to matte */
+  mat?: MatClass;
+  /** 0–1 glow strength (only for mat:"glow"); scales halo + HDR boost */
   emissive?: number;
-  /** skip the per-position color jitter (for clean surfaces like screens) */
+  /** skip the per-position color jitter (clean surfaces: glass, screens, water) */
   flat?: boolean;
 }
 
 const defs = [
   { name: "air", color: "#000000" },
-  // terrain
-  { name: "grass", color: "#93bb6c" },
-  { name: "grassDark", color: "#7da85a" },
-  { name: "dirt", color: "#a9704f" },
-  { name: "stone", color: "#cbb8a0" },
-  { name: "stoneDark", color: "#a89680" },
-  { name: "sand", color: "#f2d8a7" },
-  { name: "water", color: "#7fd4c1", flat: true },
-  // wood + foliage (autumn golden-hour trees)
-  { name: "wood", color: "#8a5a3b" },
-  { name: "woodLight", color: "#c98a4b" },
-  { name: "leaves", color: "#e8975a" },
-  { name: "leavesDark", color: "#d97f4e" },
-  { name: "leavesPink", color: "#e89ab5" },
-  // build materials
-  { name: "roofRed", color: "#c65f5f" },
-  { name: "roofPlum", color: "#8f5a86" },
-  { name: "white", color: "#fff3dd" },
-  { name: "black", color: "#3a2b45" },
-  { name: "slate", color: "#6b5a7a" },
-  { name: "copper", color: "#d9825f" },
-  { name: "obsidian", color: "#443355" },
-  { name: "paper", color: "#f7ead0" },
-  // accents
-  { name: "bookRed", color: "#b5495b" },
-  { name: "bookBlue", color: "#5a7ab5" },
-  { name: "bookGreen", color: "#6a9b6d" },
-  { name: "foxOrange", color: "#e8823a" },
-  { name: "bannerPurple", color: "#7a4a8f" },
-  { name: "bannerTeal", color: "#4a8f85" },
-  { name: "bronze", color: "#c98a52" },
-  { name: "silver", color: "#dcd7e0" },
-  // glows
-  { name: "gold", color: "#ffb84d", emissive: 0.95 },
-  { name: "amber", color: "#ff9e3d", emissive: 0.6 },
-  { name: "crystal", color: "#b7e6ff", emissive: 0.55 },
-  { name: "redstone", color: "#ff5f4d", emissive: 0.85 },
-  { name: "trophyGold", color: "#ffcf5e", emissive: 0.4 },
-  { name: "screen", color: "#9fe8e0", emissive: 0.5, flat: true },
-  { name: "kipCream", color: "#ffe9c4" },
-  { name: "kipGold", color: "#ffc978" },
-  { name: "kipGlow", color: "#ffd98a", emissive: 1 },
+  // — terrain —
+  { name: "grass", color: "#8fb35e" },
+  { name: "grassDark", color: "#79a24c" },
+  { name: "dirt", color: "#9c6b4a" },
+  { name: "stone", color: "#b8ab98" },
+  { name: "stoneDark", color: "#94897a" },
+  { name: "sand", color: "#e9d3a4" },
+  { name: "water", color: "#5fb8a8", mat: "water", flat: true },
+  // — wood + foliage (autumn golden-hour) —
+  { name: "wood", color: "#7d5236" },
+  { name: "woodLight", color: "#c08343" },
+  { name: "leaves", color: "#e08c4a" },
+  { name: "leavesDark", color: "#c9773e" },
+  { name: "leavesCoral", color: "#e0876c" },
+  // — build materials —
+  { name: "roofRed", color: "#b85450", mat: "gloss" },
+  { name: "roofSlate", color: "#556066", mat: "gloss" },
+  { name: "white", color: "#f4ecd8" },
+  { name: "marble", color: "#ece2cc", mat: "gloss" },
+  { name: "black", color: "#2a2420" },
+  { name: "concrete", color: "#b0a894" },
+  { name: "concreteDark", color: "#847c6c" },
+  { name: "obsidian", color: "#322a26", mat: "gloss" },
+  { name: "paper", color: "#f0e4c8" },
+  // — metals —
+  { name: "steel", color: "#77808c", mat: "metal", flat: true },
+  { name: "steelDark", color: "#4a525e", mat: "metal", flat: true },
+  { name: "copper", color: "#c47a4e", mat: "metal" },
+  { name: "bronze", color: "#b08048", mat: "metal" },
+  { name: "silver", color: "#c8c8cc", mat: "metal", flat: true },
+  { name: "goldMetal", color: "#d9a440", mat: "metal", flat: true },
+  // — accents —
+  { name: "bookRed", color: "#a84848" },
+  { name: "bookBlue", color: "#4e6e8c" },
+  { name: "bookGreen", color: "#5e8c5e" },
+  { name: "foxOrange", color: "#d97a34" },
+  { name: "bannerCrimson", color: "#a83a3a" },
+  { name: "bannerTeal", color: "#3e8078" },
+  { name: "glass", color: "#cfe0d8", mat: "gloss", flat: true },
+  // — glows (bloom-fed) —
+  { name: "gold", color: "#ffb84d", mat: "glow", emissive: 0.95, flat: true },
+  { name: "amber", color: "#ff9e3d", mat: "glow", emissive: 0.6, flat: true },
+  { name: "warmLight", color: "#ffdf9e", mat: "glow", emissive: 0.8, flat: true },
+  { name: "power", color: "#ffb020", mat: "glow", emissive: 0.9, flat: true },
+  { name: "warning", color: "#ff5f3d", mat: "glow", emissive: 0.85, flat: true },
+  { name: "trophyGold", color: "#ffd060", mat: "glow", emissive: 0.45, flat: true },
+  { name: "screen", color: "#bfe8d8", mat: "glow", emissive: 0.55, flat: true },
+  { name: "glassLit", color: "#ffd98a", mat: "glow", emissive: 0.7, flat: true },
+  // — Kip —
+  { name: "kipCream", color: "#f7e6c4" },
+  { name: "kipGold", color: "#f0c078" },
+  { name: "kipGlow", color: "#ffd98a", mat: "glow", emissive: 1, flat: true },
 ] as const satisfies readonly BlockDef[];
 
 export const BLOCK_DEFS: readonly BlockDef[] = defs;

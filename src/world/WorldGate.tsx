@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { Resume } from "@/content/types";
 import { useWorld, type Quality } from "./store";
+import { StartMenu } from "@/ui/StartMenu";
 
 const World = dynamic(() => import("./World"), {
   ssr: false,
@@ -45,6 +46,7 @@ export function WorldGate({ resume }: { resume: Resume }) {
   return (
     <div className="world-layer" role="application" aria-label="Kalpana voxel world">
       <World resume={resume} />
+      <StartMenu />
     </div>
   );
 }
