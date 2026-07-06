@@ -40,6 +40,10 @@ interface WorldState {
   muted: boolean;
   toggleMuted: () => void;
 
+  // — time of day —
+  night: boolean;
+  toggleNight: () => void;
+
   // — tour —
   stops: TourStop[];
   setStops: (stops: TourStop[]) => void;
@@ -86,6 +90,12 @@ export const useWorld = create<WorldState>((set, get) => ({
     const m = !get().muted;
     audio.setMuted(m);
     set({ muted: m });
+  },
+
+  night: false,
+  toggleNight: () => {
+    audio.click();
+    set((s) => ({ night: !s.night }));
   },
 
   stops: [],

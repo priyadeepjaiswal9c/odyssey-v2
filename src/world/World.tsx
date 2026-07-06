@@ -14,7 +14,8 @@ import type { Resume } from "@/content/types";
 import { useWorld } from "./store";
 import { buildStops } from "./stops";
 import { Sky, SunDisc, Clouds } from "./Sky";
-import { SKY, SUN_DIR } from "./layout";
+import { Particles } from "./Particles";
+import { SKY, SUN_DIR, REALMS } from "./layout";
 import { CameraRig, rig } from "./CameraRig";
 import { Kip } from "./Kip";
 import { Hud } from "@/ui/Hud";
@@ -59,13 +60,15 @@ export default function World({ resume }: { resume: Resume }) {
       >
         <FrameProbe />
         <fog attach="fog" args={[SKY.fog, 100, 340]} />
+        <FogRig />
         <Sky />
         <Clouds count={quality === "low" ? 12 : 26} />
 
-        {/* golden-hour light rig */}
-        <hemisphereLight args={[SKY.high, SKY.glowBand, 0.5]} />
-        <ambientLight intensity={0.22} color="#ffd9a0" />
+        {/* golden-hour light rig (night-aware) */}
+        <LightRig />
         <SunLight shadows={quality !== "low"} />
+        {/* ambient fireflies around wherever we are */}
+        <RealmFireflies quality={quality} />
         {/* warm reflections sampled from our own sky */}
         {!noEnv && (
           <Environment frames={1} resolution={128}>
@@ -257,18 +260,86 @@ function FrameProbe() {
   return null;
 }
 
+/** hemisphere + ambient, dimming into the night */
+function LightRig() {
+  const hemi = useRef<THREE.HemisphereLight>(null);
+  const amb = useRef<THREE.AmbientLight>(null);
+
+  useFrame((_, dt) => {
+    const night = useWorld.getState().night;
+    if (hemi.current)
+      hemi.current.intensity = THREE.MathUtils.damp(
+        hemi.current.intensity, night ? 0.16 : 0.5, 1.6, dt
+      );
+    if (amb.current)
+      amb.current.intensity = THREE.MathUtils.damp(
+        amb.current.intensity, night ? 0.09 : 0.22, 1.6, dt
+      );
+  });
+
+  return (
+    <>
+      <hemisphereLight ref={hemi} args={[SKY.high, SKY.glowBand, 0.5]} />
+      <ambientLight ref={amb} intensity={0.22} color="#ffd9a0" />
+    </>
+  );
+}
+
+/** fog eases between warm haze and deep night blue */
+function FogRig() {
+  const scene = useThree((s) => s.scene);
+  const day = useRef(new THREE.Color(SKY.fog));
+  const night = useRef(new THREE.Color("#141a28"));
+  const mix = useRef(0);
+
+  useFrame((_, dt) => {
+    const fog = scene.fog as THREE.Fog | null;
+    if (!fog) return;
+    mix.current = THREE.MathUtils.damp(
+      mix.current, useWorld.getState().night ? 1 : 0, 1.6, dt
+    );
+    fog.color.lerpColors(day.current, night.current, mix.current);
+  });
+  return null;
+}
+
+/** fireflies follow the current realm (denser + brighter at night) */
+function RealmFireflies({ quality }: { quality: string }) {
+  const mounted = useWorld((s) => s.mounted);
+  const realm = mounted[mounted.length - 1] ?? "hub";
+  const center = REALMS[realm].pos;
+  if (quality === "low") return null;
+  return (
+    <Particles
+      key={realm}
+      center={[center[0], center[1] + 10, center[2]]}
+      count={36}
+      radius={30}
+      color="#ffd98a"
+      size={0.8}
+      mode="drift"
+      seed={realm.length * 17}
+      opacity={0.7}
+    />
+  );
+}
+
 /** warm sun that keeps its shadow frustum centered on wherever we are */
 function SunLight({ shadows }: { shadows: boolean }) {
   const ref = useRef<THREE.DirectionalLight>(null);
   const targetRef = useRef<THREE.Object3D>(null);
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     const light = ref.current;
     const target = targetRef.current;
     if (!light || !target) return;
     target.position.copy(rig.target);
     light.position.copy(rig.target).addScaledVector(SUN_DIR, 140);
     light.target = target;
+    // the sun rests at night
+    light.intensity = THREE.MathUtils.damp(
+      light.intensity, useWorld.getState().night ? 0.3 : 2.4, 1.6, dt
+    );
   });
 
   return (

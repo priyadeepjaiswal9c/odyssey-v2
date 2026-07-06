@@ -149,6 +149,17 @@ export function CameraRig() {
       rig.target.z
     );
     camera.lookAt(tmp.look);
+
+    // cinematic breathing: FOV widens slightly in flight
+    const persp = camera as THREE.PerspectiveCamera;
+    if (persp.isPerspectiveCamera) {
+      const wantFov = rig.flying ? 51 : 45;
+      const next = THREE.MathUtils.damp(persp.fov, wantFov, 2, dt);
+      if (Math.abs(next - persp.fov) > 0.01) {
+        persp.fov = next;
+        persp.updateProjectionMatrix();
+      }
+    }
   });
 
   return null;

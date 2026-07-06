@@ -4,6 +4,7 @@ import { forwardRef, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { SKY, SUN_DIR } from "./layout";
+import { useWorld } from "./store";
 import { rng } from "@/lib/voxel/rng";
 
 /**
@@ -32,6 +33,8 @@ uniform vec3 uGlowBand;
 uniform vec3 uSunColor;
 uniform vec3 uBelow;
 uniform vec3 uSunDir;
+uniform float uNight; // 0 = golden hour · 1 = starry night
+uniform float uTime;
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -43,23 +46,37 @@ void main() {
   vec3 d = normalize(vDir);
   float h = d.y;
 
+  // day palette, night palette, mixed
+  vec3 zen = mix(uZenith, vec3(0.045, 0.075, 0.125), uNight);
+  vec3 hi = mix(uHigh, vec3(0.08, 0.12, 0.18), uNight);
+  vec3 hor = mix(uHorizon, vec3(0.16, 0.15, 0.2), uNight);
+  vec3 glo = mix(uGlowBand, vec3(0.2, 0.18, 0.24), uNight);
+  vec3 bel = mix(uBelow, vec3(0.03, 0.035, 0.06), uNight);
+
   // atmospheric gradient: amber horizon → dusty blue zenith
-  vec3 col = mix(uHorizon, uHigh, smoothstep(0.0, 0.34, h));
-  col = mix(col, uZenith, smoothstep(0.3, 0.8, h));
-  // below-horizon: deep warm earth haze
-  col = mix(col, uBelow, smoothstep(-0.02, -0.42, h));
+  vec3 col = mix(hor, hi, smoothstep(0.0, 0.34, h));
+  col = mix(col, zen, smoothstep(0.3, 0.8, h));
+  col = mix(col, bel, smoothstep(-0.02, -0.42, h));
 
   float sunDot = max(dot(d, uSunDir), 0.0);
 
   // horizon scattering band, strongest toward the sun azimuth
   float band = exp(-abs(h - 0.03) * 10.0);
   float towardSun = 0.35 + 0.65 * pow(max(dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSunDir.x, 0.0, uSunDir.z))), 0.0), 2.0);
-  col += uGlowBand * band * 0.5 * towardSun;
+  col += glo * band * 0.5 * towardSun;
 
-  // the sun: hot disc + tight corona + soft warm wash
-  col += uSunColor * pow(sunDot, 1400.0) * 3.0;
-  col += uSunColor * pow(sunDot, 80.0) * 0.5;
-  col += uGlowBand * pow(sunDot, 10.0) * 0.22;
+  // the sun (fades at night to a pale moon-glow)
+  float sunAmp = 1.0 - uNight * 0.88;
+  col += uSunColor * pow(sunDot, 1400.0) * 3.0 * sunAmp;
+  col += uSunColor * pow(sunDot, 80.0) * 0.5 * sunAmp;
+  col += glo * pow(sunDot, 10.0) * 0.22;
+
+  // stars: everywhere at night, twinkling
+  float starField = smoothstep(0.05, 0.4, h) * uNight;
+  vec2 grid = floor(d.xz / max(0.1, abs(d.y)) * 26.0);
+  float star = step(0.991, hash21(grid));
+  float tw = 0.55 + 0.45 * sin(uTime * 1.8 + hash21(grid + 7.0) * 40.0);
+  col += vec3(0.9, 0.92, 1.0) * star * starField * tw * 0.65;
 
   // dither to kill banding
   col += (hash21(gl_FragCoord.xy) - 0.5) * 0.012;
@@ -69,6 +86,7 @@ void main() {
 `;
 
 export function Sky() {
+  const matRef = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(
     () => ({
       uZenith: { value: new THREE.Color(SKY.zenith) },
@@ -78,14 +96,27 @@ export function Sky() {
       uSunColor: { value: new THREE.Color(SKY.sun) },
       uBelow: { value: new THREE.Color(SKY.below) },
       uSunDir: { value: SUN_DIR.clone() },
+      uNight: { value: 0 },
+      uTime: { value: 0 },
     }),
     []
   );
+
+  useFrame((_, dt) => {
+    const m = matRef.current;
+    if (!m) return;
+    m.uniforms.uTime.value += dt;
+    const want = useWorld.getState().night ? 1 : 0;
+    m.uniforms.uNight.value = THREE.MathUtils.damp(
+      m.uniforms.uNight.value, want, 1.6, dt
+    );
+  });
 
   return (
     <mesh frustumCulled={false} renderOrder={-100}>
       <icosahedronGeometry args={[520, 3]} />
       <shaderMaterial
+        ref={matRef}
         vertexShader={VERT}
         fragmentShader={FRAG}
         uniforms={uniforms}
@@ -104,10 +135,23 @@ export function Sky() {
  */
 export const SunDisc = forwardRef<THREE.Mesh>(function SunDisc(_, ref) {
   const pos = useMemo(() => SUN_DIR.clone().multiplyScalar(460), []);
+  const mat = useRef<THREE.MeshBasicMaterial>(null);
+  const day = useMemo(() => new THREE.Color(SKY.sun), []);
+  const night = useMemo(() => new THREE.Color("#3a4256"), []);
+
+  useFrame((_, dt) => {
+    if (!mat.current) return;
+    const want = useWorld.getState().night ? 1 : 0;
+    const cur = (mat.current.userData.n as number | undefined) ?? 0;
+    const n = THREE.MathUtils.damp(cur, want, 1.6, dt);
+    mat.current.userData.n = n;
+    mat.current.color.lerpColors(day, night, n);
+  });
+
   return (
     <mesh ref={ref} position={pos} frustumCulled={false}>
       <sphereGeometry args={[11, 24, 24]} />
-      <meshBasicMaterial color={SKY.sun} toneMapped={false} fog={false} />
+      <meshBasicMaterial ref={mat} color={SKY.sun} toneMapped={false} fog={false} />
     </mesh>
   );
 });
@@ -133,7 +177,7 @@ export function Clouds({ count = 26, seed = 77 }: { count?: number; seed?: numbe
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  useFrame((state) => {
+  useFrame((state, dt) => {
     const t = state.clock.elapsedTime;
     const mesh = ref.current;
     if (!mesh) return;
@@ -145,6 +189,10 @@ export function Clouds({ count = 26, seed = 77 }: { count?: number; seed?: numbe
       mesh.setMatrixAt(i, dummy.matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
+    // clouds thin out at night
+    const mat = mesh.material as THREE.MeshBasicMaterial;
+    const want = useWorld.getState().night ? 0.14 : 0.42;
+    mat.opacity = THREE.MathUtils.damp(mat.opacity, want, 1.6, dt);
   });
 
   return (

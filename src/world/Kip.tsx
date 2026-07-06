@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { VoxelModel } from "@/lib/voxel/model";
 import { B } from "@/lib/voxel/palette";
+import { audio } from "@/lib/audio";
 import { VoxelMesh } from "./VoxelMesh";
 import { useWorld } from "./store";
 import { rig } from "./CameraRig";
@@ -52,8 +53,19 @@ export function Kip() {
   const quality = useWorld((s) => s.quality);
   const spin = useRef({ active: false, t: 0 });
   const wasFlying = useRef(false);
+  const idleSince = useRef(0);
   const target = useMemo(() => new THREE.Vector3(4, 10, 8), []);
   const facing = useRef(0);
+
+  // easter egg: anything can ask Kip to celebrate
+  useEffect(() => {
+    const onCelebrate = () => {
+      spin.current = { active: true, t: 0 };
+      audio.chirp();
+    };
+    window.addEventListener("kip:celebrate", onCelebrate);
+    return () => window.removeEventListener("kip:celebrate", onCelebrate);
+  }, []);
 
   useFrame((state, dt) => {
     const g = group.current;
@@ -65,8 +77,19 @@ export function Kip() {
     // arrival celebration: full spin
     if (wasFlying.current && !rig.flying) {
       spin.current = { active: true, t: 0 };
+      idleSince.current = state.clock.elapsedTime;
     }
     wasFlying.current = rig.flying;
+
+    // been parked a while? do a little loop for fun
+    if (
+      !rig.flying &&
+      state.clock.elapsedTime - idleSince.current > 14 &&
+      !spin.current.active
+    ) {
+      spin.current = { active: true, t: 0 };
+      idleSince.current = state.clock.elapsedTime;
+    }
 
     // fly toward target — faster when leading a flight
     const speed = rig.flying ? 3.2 : 1.8;
@@ -112,6 +135,18 @@ export function Kip() {
 
   return (
     <group ref={group} position={[4, 12, 8]}>
+      {/* clickable — Kip appreciates the attention */}
+      <mesh
+        onClick={(e) => {
+          e.stopPropagation();
+          window.dispatchEvent(new CustomEvent("kip:celebrate"));
+        }}
+        onPointerOver={() => (document.body.style.cursor = "pointer")}
+        onPointerOut={() => (document.body.style.cursor = "")}
+        visible={false}
+      >
+        <sphereGeometry args={[2.4, 8, 8]} />
+      </mesh>
       <group ref={body} scale={0.42}>
         <VoxelMesh build={buildKipBody} anchor="center" haloScale={1.6} />
         <group ref={wingL} position={[-2.8, 0.6, -0.5]}>

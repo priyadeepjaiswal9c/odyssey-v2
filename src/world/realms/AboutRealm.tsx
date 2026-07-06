@@ -5,6 +5,7 @@ import type { Resume } from "@/content/types";
 import { audio } from "@/lib/audio";
 import { REALMS } from "../layout";
 import { VoxelMesh } from "../VoxelMesh";
+import { Particles } from "../Particles";
 import { buildAboutIsland, ABOUT_TOP, ABOUT_POI } from "../structures/about";
 import { FloatingRock } from "./common";
 
@@ -18,6 +19,17 @@ export default function AboutRealm({ resume }: { resume: Resume }) {
     <group>
       <group position={[base[0], base[1] - ABOUT_TOP, base[2]]}>
         <VoxelMesh build={buildAboutIsland} maxHalos={10} />
+        {/* soft smoke from the cottage chimney */}
+        <Particles
+          center={[29.5 - 26, ABOUT_TOP + 12, 21.5 - 26]}
+          count={10}
+          radius={9}
+          color="#c9bfb4"
+          size={1.1}
+          mode="puff"
+          seed={21}
+          opacity={0.35}
+        />
         {github && <SignHotspot local={ABOUT_POI.signGitHub} url={github.url} />}
         {linkedin && <SignHotspot local={ABOUT_POI.signLinkedIn} url={linkedin.url} />}
         <SignHotspot

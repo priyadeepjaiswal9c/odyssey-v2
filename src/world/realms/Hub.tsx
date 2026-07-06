@@ -22,6 +22,19 @@ export default function Hub() {
           <SignHotspot key={realm} realm={realm} local={sign.pos} />
         )
       )}
+      {/* the beacon is ticklish (easter egg) */}
+      <mesh
+        position={[0, HUB_TOP + 4, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          window.dispatchEvent(new CustomEvent("kip:celebrate"));
+        }}
+        onPointerOver={() => (document.body.style.cursor = "pointer")}
+        onPointerOut={() => (document.body.style.cursor = "")}
+        visible={false}
+      >
+        <boxGeometry args={[2.5, 6, 2.5]} />
+      </mesh>
       {/* companion rocks floating nearby */}
       <FloatingRock position={[-30, 4, -14]} seed={101} size={4} />
       <FloatingRock position={[26, -7, 18]} seed={102} size={5} />

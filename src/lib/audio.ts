@@ -133,6 +133,28 @@ class AudioEngine {
     src.stop(t + duration + 0.05);
   }
 
+  /** Kip's happy chirp — two quick rising notes */
+  chirp(): void {
+    const ctx = this.ctx;
+    if (!ctx || !this.sfx) return;
+    const t = ctx.currentTime;
+    for (const [dt, f] of [
+      [0, 1046.5], // C6
+      [0.09, 1318.5], // E6
+    ] as const) {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(f, t + dt);
+      osc.frequency.exponentialRampToValueAtTime(f * 1.25, t + dt + 0.07);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.12, t + dt);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dt + 0.12);
+      osc.connect(gain).connect(this.sfx);
+      osc.start(t + dt);
+      osc.stop(t + dt + 0.14);
+    }
+  }
+
   /** warm two-note arrival chime (FM bell) */
   chime(): void {
     const ctx = this.ctx;

@@ -40,6 +40,8 @@ function RealmNav() {
   const setWorldActive = useWorld((s) => s.setWorldActive);
   const muted = useWorld((s) => s.muted);
   const toggleMuted = useWorld((s) => s.toggleMuted);
+  const night = useWorld((s) => s.night);
+  const toggleNight = useWorld((s) => s.toggleNight);
   const stops = useWorld((s) => s.stops);
   const stopIndex = useWorld((s) => s.stopIndex);
   const currentRealm = stops[stopIndex]?.realm ?? "hub";
@@ -55,6 +57,7 @@ function RealmNav() {
             key={r}
             className={`hud-pill ${currentRealm === r ? "is-active" : ""} ${built ? "" : "is-soon"}`}
             disabled={!built}
+            onMouseEnter={() => audio.hover()}
             onClick={() => {
               audio.click();
               goToRealm(r);
@@ -65,6 +68,14 @@ function RealmNav() {
           </button>
         );
       })}
+      <button
+        className="hud-pill hud-pill-icon"
+        onClick={toggleNight}
+        aria-label={night ? "Switch to golden hour" : "Switch to night"}
+        title={night ? "Golden hour" : "Night"}
+      >
+        {night ? "☀️" : "🌙"}
+      </button>
       <button
         className="hud-pill hud-pill-icon"
         onClick={toggleMuted}
@@ -107,6 +118,7 @@ function TourDock() {
       </button>
       <button
         className="hud-ctl hud-ctl-main"
+        onMouseEnter={() => audio.hover()}
         onClick={() => {
           audio.click();
           if (touring) pauseTour();

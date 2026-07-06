@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { REALMS } from "../layout";
 import { VoxelMesh } from "../VoxelMesh";
+import { Particles } from "../Particles";
 import {
   buildExperienceIsland,
   EXP_TOP,
@@ -33,6 +34,17 @@ export default function ExperienceRealm() {
     <group>
       <group position={pos}>
         <VoxelMesh build={buildExperienceIsland} maxHalos={12} />
+        {/* forge embers rising from the chimney */}
+        <Particles
+          center={[26 - 40, EXP_TOP + 13, 26 - 40]}
+          count={14}
+          radius={7}
+          color="#ff9e3d"
+          size={0.5}
+          mode="rise"
+          seed={11}
+          opacity={0.8}
+        />
         <Villager kind="smith" poi={EXP_POI.smith} face={0.9} hammer />
         <Villager kind="librarian" poi={EXP_POI.librarian} face={Math.PI} />
         <Villager kind="orator" poi={EXP_POI.orator} face={Math.PI * 0.9} mic />
