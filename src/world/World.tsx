@@ -20,6 +20,9 @@ import { Kip } from "./Kip";
 import { Hud } from "@/ui/Hud";
 import Hub from "./realms/Hub";
 import ProjectsRealm from "./realms/ProjectsRealm";
+import ExperienceRealm from "./realms/ExperienceRealm";
+import AchievementsRealm from "./realms/AchievementsRealm";
+import AboutRealm from "./realms/AboutRealm";
 
 /** The voxel world: canvas + HUD. Realms mount on demand. */
 export default function World({ resume }: { resume: Resume }) {
@@ -76,6 +79,11 @@ export default function World({ resume }: { resume: Resume }) {
         <Suspense fallback={null}>
           {mounted.includes("hub") && <Hub />}
           {mounted.includes("projects") && <ProjectsRealm resume={resume} />}
+          {mounted.includes("experience") && <ExperienceRealm />}
+          {mounted.includes("achievements") && (
+            <AchievementsRealm resume={resume} />
+          )}
+          {mounted.includes("about") && <AboutRealm resume={resume} />}
         </Suspense>
 
         {!noPost && <Post quality={quality} />}

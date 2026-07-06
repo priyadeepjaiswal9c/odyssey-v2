@@ -65,6 +65,90 @@ export function buildStops(resume: Resume): TourStop[] {
     });
   }
 
+  // — Experience village: forge → study → stage —
+  const e = REALMS.experience.pos;
+  stops.push(
+    {
+      id: "exp-village",
+      realm: "experience",
+      cam: [e[0] + 36, e[1] + 22, e[2] + 44],
+      target: [e[0], e[1] + 8, e[2]],
+      kip: [e[0] + 10, e[1] + 14, e[2] + 16],
+      holdMs: 3400,
+    },
+    {
+      id: "exp-forge",
+      realm: "experience",
+      cam: [e[0] - 3, e[1] + 11, e[2] + 18],
+      target: [e[0] - 10, e[1] + 4, e[2] - 8],
+      kip: [e[0] - 4, e[1] + 8, e[2] + 3],
+      showcase: "#work",
+      holdMs: 6800,
+    },
+    {
+      id: "exp-study",
+      realm: "experience",
+      cam: [e[0] + 19, e[1] + 8, e[2] + 10],
+      target: [e[0] + 11, e[1] + 4, e[2] - 6],
+      kip: [e[0] + 14, e[1] + 7, e[2] + 2],
+      showcase: "#education",
+      holdMs: 5400,
+    },
+    {
+      id: "exp-stage",
+      realm: "experience",
+      cam: [e[0], e[1] + 14, e[2] + 37],
+      target: [e[0], e[1] + 4, e[2] + 13],
+      kip: [e[0] - 7, e[1] + 9, e[2] + 24],
+      showcase: "#volunteer",
+      holdMs: 6200,
+    }
+  );
+
+  // — Hall of Achievements —
+  const a = REALMS.achievements.pos;
+  stops.push(
+    {
+      id: "ach-hall",
+      realm: "achievements",
+      cam: [a[0] + 26, a[1] + 16, a[2] + 34],
+      target: [a[0], a[1] + 7, a[2]],
+      kip: [a[0] + 8, a[1] + 12, a[2] + 12],
+      holdMs: 3200,
+    },
+    {
+      id: "ach-trophies",
+      realm: "achievements",
+      cam: [a[0] + 1, a[1] + 11, a[2] + 27],
+      target: [a[0], a[1] + 5, a[2] + 0],
+      kip: [a[0] + 6, a[1] + 8, a[2] + 14],
+      showcase: "#awards",
+      holdMs: 7000,
+    }
+  );
+
+  // — About: home, then the signposts —
+  const b = REALMS.about.pos;
+  stops.push(
+    {
+      id: "about-home",
+      realm: "about",
+      cam: [b[0] + 24, b[1] + 14, b[2] + 30],
+      target: [b[0], b[1] + 6, b[2]],
+      kip: [b[0] + 10, b[1] + 4, b[2] - 3], // hovering by his tiny house
+      holdMs: 3600,
+    },
+    {
+      id: "about-contact",
+      realm: "about",
+      cam: [b[0] - 4, b[1] + 9, b[2] + 26],
+      target: [b[0] - 6, b[1] + 4, b[2] + 8],
+      kip: [b[0] - 1, b[1] + 8, b[2] + 15],
+      showcase: "#contact",
+      holdMs: 8000,
+    }
+  );
+
   return stops.filter((s) =>
     (BUILT_REALMS as readonly string[]).includes(s.realm)
   );

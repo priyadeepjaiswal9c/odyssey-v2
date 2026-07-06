@@ -134,6 +134,93 @@ function TourDock() {
   );
 }
 
+interface CardData {
+  kicker: string;
+  title: string;
+  tags?: string;
+  summary?: string;
+  items: string[];
+  links?: { label: string; url: string }[];
+}
+
+/** builds card content for a stop's showcase slug — project or #special */
+function buildCard(slug: string, resume: Resume): CardData | null {
+  switch (slug) {
+    case "#work": {
+      const w = resume.work[0];
+      if (!w) return null;
+      return {
+        kicker: "✦ experience",
+        title: `${w.position} · ${w.name}`,
+        tags: `${fmtRange(w.startDate, w.endDate)}${w.location ? ` · ${w.location}` : ""}`,
+        summary: w.summary,
+        items: w.highlights,
+      };
+    }
+    case "#education":
+      return {
+        kicker: "✦ education",
+        title: "Education",
+        items: resume.education.map(
+          (e) =>
+            `${e.institution} — ${e.studyType} in ${e.area} (${fmtRange(e.startDate, e.endDate)}${e.score ? `, ${e.score}` : ""})`
+        ),
+      };
+    case "#volunteer":
+      return {
+        kicker: "✦ beyond the classroom",
+        title: "Extra Curricular",
+        items: resume.volunteer.map(
+          (v) => `${v.position}, ${v.organization} — ${v.summary}`
+        ),
+      };
+    case "#awards":
+      return {
+        kicker: "✦ the trophy hall",
+        title: "Achievements",
+        items: resume.awards.map((a) => `${a.title} — ${a.summary}`),
+      };
+    case "#contact": {
+      const links = [
+        { label: "Email", url: `mailto:${resume.basics.email}` },
+        ...resume.basics.profiles.map((p) => ({
+          label: p.network,
+          url: p.url,
+        })),
+      ];
+      return {
+        kicker: "✦ say hi",
+        title: resume.basics.name,
+        tags: `${resume.basics.location.city}, ${resume.basics.location.region}`,
+        summary: resume.basics.summary,
+        items: [],
+        links,
+      };
+    }
+    default: {
+      const project = resume.projects.find((p) => p.slug === slug);
+      if (!project) return null;
+      return {
+        kicker: "✦ project showcase",
+        title: project.name,
+        tags: project.keywords.join(" · "),
+        summary: project.summary,
+        items: project.highlights,
+        links: project.links,
+      };
+    }
+  }
+}
+
+function fmtRange(start: string, end?: string) {
+  const f = (iso: string) => {
+    const [y, mo] = iso.split("-");
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo ? `${months[parseInt(mo, 10) - 1]} ${y}` : y;
+  };
+  return `${f(start)} – ${end ? f(end) : "Present"}`;
+}
+
 function ShowcaseCard({ resume }: { resume: Resume }) {
   const slug = useWorld((s) => s.showcaseSlug);
   const dismiss = useWorld((s) => s.dismissShowcase);
@@ -145,31 +232,33 @@ function ShowcaseCard({ resume }: { resume: Resume }) {
     setVisible(!!slug);
   }, [slug]);
 
-  const project = useMemo(
-    () => resume.projects.find((p) => p.slug === lastSlug.current),
+  const card = useMemo(
+    () => (lastSlug.current ? buildCard(lastSlug.current, resume) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [slug, resume]
   );
 
-  if (!project) return null;
+  if (!card) return null;
 
   return (
     <aside className={`hud-card ${visible ? "is-open" : ""}`} aria-hidden={!visible}>
       <button className="hud-card-close" onClick={dismiss} aria-label="Close showcase">
         ✕
       </button>
-      <p className="hud-card-kicker">✦ project showcase</p>
-      <h2 className="hud-card-title">{project.name}</h2>
-      <p className="hud-card-tags">{project.keywords.join(" · ")}</p>
-      <p className="hud-card-summary">{project.summary}</p>
-      <ul className="hud-card-list">
-        {project.highlights.map((h, i) => (
-          <li key={i}>{h}</li>
-        ))}
-      </ul>
-      {project.links && (
+      <p className="hud-card-kicker">{card.kicker}</p>
+      <h2 className="hud-card-title">{card.title}</h2>
+      {card.tags && <p className="hud-card-tags">{card.tags}</p>}
+      {card.summary && <p className="hud-card-summary">{card.summary}</p>}
+      {card.items.length > 0 && (
+        <ul className="hud-card-list">
+          {card.items.map((h, i) => (
+            <li key={i}>{h}</li>
+          ))}
+        </ul>
+      )}
+      {card.links && (
         <div className="hud-card-links">
-          {project.links.map((l) => (
+          {card.links.map((l) => (
             <a key={l.url} href={l.url} target="_blank" rel="noopener">
               {l.label} ↗
             </a>
