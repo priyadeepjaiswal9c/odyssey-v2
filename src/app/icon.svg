@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#241c12"/>
+  <!-- a tiny voxel K, golden hour -->
+  <rect x="7" y="6" width="5" height="20" fill="#ffb84d"/>
+  <rect x="14" y="13" width="4" height="5" fill="#ff9e64"/>
+  <rect x="18" y="9" width="4" height="5" fill="#ffd9a0"/>
+  <rect x="22" y="5" width="4" height="5" fill="#ffe9c4"/>
+  <rect x="18" y="18" width="4" height="5" fill="#ffd9a0"/>
+  <rect x="22" y="22" width="4" height="5" fill="#ffe9c4"/>
+</svg>

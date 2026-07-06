@@ -59,6 +59,7 @@ export default function World({ resume }: { resume: Resume }) {
         }}
       >
         <FrameProbe />
+        <PerfGovernor />
         <fog attach="fog" args={[SKY.fog, 100, 340]} />
         <FogRig />
         <Sky />
@@ -173,6 +174,33 @@ function TourDriver() {
     return () => clearTimeout(t);
   }, [touring, stopIndex, targetIndex, stops]);
 
+  return null;
+}
+
+/** watches real FPS and steps quality down if the device is struggling */
+function PerfGovernor() {
+  const acc = useRef({ t: 0, frames: 0, settled: 0 });
+
+  useFrame((state, dt) => {
+    const a = acc.current;
+    // give the world a grace period after boot / realm switches
+    if (state.clock.elapsedTime < 8) return;
+    a.t += dt;
+    a.frames++;
+    if (a.t >= 4) {
+      const fps = a.frames / a.t;
+      a.t = 0;
+      a.frames = 0;
+      const { quality, setQuality } = useWorld.getState();
+      if (fps < 26 && a.settled < 2) {
+        a.settled++;
+        if (quality === "high") setQuality("medium");
+        else if (quality === "medium") setQuality("low");
+        if (process.env.NODE_ENV !== "production")
+          console.log(`[kalpana] fps ${fps.toFixed(0)} → quality stepped down`);
+      }
+    }
+  });
   return null;
 }
 

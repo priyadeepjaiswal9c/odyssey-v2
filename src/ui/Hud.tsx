@@ -13,6 +13,31 @@ import { BUILT_REALMS } from "@/world/registry";
  */
 export function Hud({ resume }: { resume: Resume }) {
   const phase = useWorld((s) => s.phase);
+
+  // keyboard: ← → step stops, space toggles the tour, Esc closes the card
+  useEffect(() => {
+    if (phase === "menu") return;
+    const onKey = (e: KeyboardEvent) => {
+      const st = useWorld.getState();
+      if (e.key === "ArrowRight") {
+        audio.click();
+        st.next();
+      } else if (e.key === "ArrowLeft") {
+        audio.click();
+        st.prev();
+      } else if (e.key === " " && !(e.target instanceof HTMLButtonElement)) {
+        e.preventDefault();
+        audio.click();
+        if (st.touring) st.pauseTour();
+        else st.startTour();
+      } else if (e.key === "Escape") {
+        st.dismissShowcase();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase]);
+
   if (phase === "menu") return null;
   return (
     <div className="hud">

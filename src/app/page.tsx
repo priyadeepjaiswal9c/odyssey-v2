@@ -27,6 +27,9 @@ export default async function Home() {
 
   return (
     <>
+      <a className="skip-link" href="#text-core">
+        Skip to text résumé
+      </a>
       {/* the voxel world layers itself above when the device can carry it */}
       <WorldGate resume={resume} />
       {/* the SSR text core — always present, always complete */}
