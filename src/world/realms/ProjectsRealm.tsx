@@ -27,6 +27,7 @@ import {
   CAB_TRACK,
 } from "../structures/campuscab";
 import { FloatingRock } from "./common";
+import { Sign } from "../Sign";
 
 /**
  * The Projects archipelago — three bespoke islands:
@@ -62,10 +63,33 @@ function islandPos(
 // ————— Meridian —————
 
 function MeridianIsland({ base }: { base: [number, number, number] }) {
+  // approach + showcase cameras live toward +x/+z — signs face that way
+  const face: [number, number, number] = [0, Math.PI * 0.22, 0];
   return (
     <group position={islandPos(base, "meridian", MERIDIAN_TOP)}>
       <VoxelMesh build={buildMeridianIsland} maxHalos={10} />
       <MapFox />
+      {/* island banner — proud but off the camera corridor */}
+      <Sign
+        text="MERIDIAN"
+        sub="Energy Supply-Chain AI"
+        position={[-14, MERIDIAN_TOP + 13, 4]}
+        rotation={face}
+        size={1.45}
+        posts
+      />
+      <Sign
+        text="CONTROL TOWER"
+        position={[-4.5, MERIDIAN_TOP + 3.4, 3]}
+        rotation={face}
+        size={0.95}
+      />
+      <Sign
+        text="SUBSTATION"
+        position={[13.5, MERIDIAN_TOP + 3.4, 18]}
+        rotation={face}
+        size={0.95}
+      />
     </group>
   );
 }
