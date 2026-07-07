@@ -54,8 +54,13 @@ P1R done + verified (screenshot suite `/tmp/kalpana-shots`, interactive click-th
 
 - None.
 
+## FINAL redirect (2026-07-07/08) — COMPLETE ✅
+
+All FINAL-ADDENDUM requirements shipped: PRIYADEEP JAISWAL branding (no "Kalpana" on screen) · Monocraft OFL everywhere + readable sans prose · content.json from main.tex (CONTENT-TODO.md for owner) · narrator deleted at code level (Kip = silent set-dressing) · RTX v2 stack (N8AO→Bloom→GodRays→ACES→grade→SMAA, PCSS, fogExp2, demand-loop, context-loss overlay) · Minecraft menu + Entry-gate summary · troika Monocraft signs on EVERY structure · extracurriculars split (TEDx stage / Yavanika theatre / NSS post) · Monument Hall (beams, engraved plinths, blooming medals, reflective floor, nameplates) · recruiter fast lane (persistent HUD, /resume.pdf, /classic + skills index, deep links, SEO+OG+sitemap, Analytics) · CREDITS.md · **FPS 51–59 measured (floor ≥45 met; governor holds it at <42)**.
+
 ## Deploys (FINAL redirect era)
 
+- **Preview #2 — DoD** (2026-07-08): https://odyssey-v2-fr4x9ftrg-priyadeepjaiswal.vercel.app
 - **Preview #1** (R-P0+FL+P1, 2026-07-07): https://odyssey-v2-4oxwwqwac-priyadeepjaiswal.vercel.app
   ⚠ Vercel auto-marked the first deploy of the new project "Production" env (no `--prod` was run; it's still only the scratch `*.vercel.app` subdomain — no prior prod existed, no custom domain). All future deploys stay previews.
   ⚠ **Deployment Protection is ON by default** → anonymous visitors get a Vercel SSO wall. Fix is one toggle (Human Review below).

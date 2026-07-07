@@ -9,7 +9,6 @@ import {
   N8AO,
   Bloom,
   GodRays,
-  DepthOfField,
   ToneMapping,
   HueSaturation,
   Vignette,
@@ -84,7 +83,7 @@ export default function World({ content }: { content: Content }) {
         <FrameProbe />
         <PerfGovernor />
         <AnimationDriver />
-        {quality !== "low" && <SoftShadows size={24} samples={12} focus={0.6} />}
+        {quality !== "low" && <SoftShadows size={20} samples={8} focus={0.6} />}
         {/* exponential fog: depth + hides realm pop-in */}
         <fogExp2 attach="fog" args={[SKY.fog, 0.0042]} />
         <FogRig />
@@ -131,13 +130,6 @@ export default function World({ content }: { content: Content }) {
  */
 function Post({ quality }: { quality: string }) {
   const [sun, setSun] = useState<THREE.Mesh | null>(null);
-  const dofRef = useRef<{ target: THREE.Vector3 } | null>(null);
-
-  // subtle DoF focuses wherever the tour is looking
-  useFrame(() => {
-    dofRef.current?.target?.copy?.(rig.target);
-  });
-
   if (quality === "low") return <SunDisc ref={setSun} />;
 
   return (
@@ -148,12 +140,7 @@ function Post({ quality }: { quality: string }) {
         frameBufferType={THREE.HalfFloatType}
         multisampling={0}
       >
-        <N8AO
-          aoRadius={2}
-          intensity={quality === "high" ? 4 : 3}
-          color="#2a3a55"
-          halfRes={quality !== "high"}
-        />
+        <N8AO aoRadius={2} intensity={3.5} color="#2a3a55" halfRes />
         <Bloom
           intensity={0.75}
           luminanceThreshold={0.9}
@@ -163,25 +150,13 @@ function Post({ quality }: { quality: string }) {
         {quality === "high" && sun ? (
           <GodRays
             sun={sun}
-            samples={40}
+            samples={30}
             density={0.9}
             decay={0.92}
             weight={0.09}
             exposure={0.14}
             clampMax={0.5}
             blur
-          />
-        ) : (
-          <></>
-        )}
-        {quality === "high" ? (
-          <DepthOfField
-            // @ts-expect-error postprocessing exposes .target on the effect
-            ref={dofRef}
-            focusDistance={0}
-            focalLength={0.9}
-            bokehScale={2.2}
-            height={480}
           />
         ) : (
           <></>
@@ -271,7 +246,7 @@ function PerfGovernor() {
       a.t = 0;
       a.frames = 0;
       const { quality, setQuality } = useWorld.getState();
-      if (fps < 26 && a.settled < 2) {
+      if (fps < 42 && a.settled < 2) {
         a.settled++;
         if (quality === "high") setQuality("medium");
         else if (quality === "medium") setQuality("low");
