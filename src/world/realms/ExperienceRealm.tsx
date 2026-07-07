@@ -19,6 +19,7 @@ import {
   type VillagerKind,
 } from "../structures/villagers";
 import { FloatingRock } from "./common";
+import { Sign } from "../Sign";
 
 /**
  * The Experience village — five profession-villagers at their stations:
@@ -50,6 +51,13 @@ export default function ExperienceRealm() {
         <Villager kind="orator" poi={EXP_POI.orator} face={Math.PI * 0.9} mic />
         <Villager kind="bard" poi={EXP_POI.bard} face={Math.PI * 1.1} />
         <Villager kind="helper" poi={EXP_POI.helper} face={-0.6} />
+
+        {/* every trade signed — the addendum's exact labels */}
+        <Sign text="WINDFLOW" sub="AI Intern" position={[-10, EXP_TOP + 10, -7]} size={0.9} />
+        <Sign text="IIT PATNA" sub="B.Tech ECE" position={[13, EXP_TOP + 8.5, -8]} size={0.9} />
+        <Sign text="TEDX" sub="Speaker · Organizer" position={[-14, EXP_TOP + 10, 12.5]} size={0.75} />
+        <Sign text="YAVANIKA" sub="Dramatics" position={[1, EXP_TOP + 10.5, 19.5]} size={0.78} />
+        <Sign text="NSS" sub="Community Service" position={[16, EXP_TOP + 8.5, 10]} size={0.75} />
       </group>
       <FloatingRock position={[base[0] - 46, base[1] + 14, base[2] + 20]} seed={301} size={4} />
       <FloatingRock position={[base[0] + 42, base[1] - 6, base[2] - 30]} seed={302} size={5} />

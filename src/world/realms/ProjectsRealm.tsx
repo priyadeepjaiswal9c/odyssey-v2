@@ -127,10 +127,25 @@ function MapFox() {
 // ————— TARK —————
 
 function TarkIsland({ base }: { base: [number, number, number] }) {
+  const face: [number, number, number] = [0, Math.PI * 0.22, 0];
   return (
     <group position={islandPos(base, "tark", TARK_TOP)}>
       <VoxelMesh build={buildTarkIsland} maxHalos={10} />
       <OwlScribe />
+      <Sign
+        text="TARK"
+        sub="Legal AI"
+        position={[-14, TARK_TOP + 13, 5]}
+        rotation={face}
+        size={1.45}
+        posts
+      />
+      <Sign
+        text="COURTHOUSE"
+        position={[0, TARK_TOP + 3.6, 8]}
+        rotation={face}
+        size={0.95}
+      />
     </group>
   );
 }
@@ -170,10 +185,25 @@ function OwlScribe() {
 // ————— Campus Cab —————
 
 function CabIsland({ base }: { base: [number, number, number] }) {
+  const face: [number, number, number] = [0, Math.PI * 0.22, 0];
   return (
     <group position={islandPos(base, "campuscab", CAB_TOP)}>
       <VoxelMesh build={buildCabIsland} maxHalos={10} />
       <CartCritter />
+      <Sign
+        text="CAMPUS CAB"
+        sub="Campus Rides"
+        position={[-14, CAB_TOP + 13, 4]}
+        rotation={face}
+        size={1.35}
+        posts
+      />
+      <Sign
+        text="STATION"
+        position={[0, CAB_TOP + 10.5, 5]}
+        rotation={face}
+        size={0.95}
+      />
     </group>
   );
 }

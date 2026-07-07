@@ -21,9 +21,9 @@ export const EXP_POI = {
   smith: [30, Y + 1, 32] as [number, number, number],
   anvil: [33, Y + 1, 32] as [number, number, number],
   librarian: [52, Y + 1, 33] as [number, number, number],
-  orator: [34, Y + 2, 53] as [number, number, number],
+  orator: [26, Y + 2, 54] as [number, number, number],
   bard: [40, Y + 2, 55] as [number, number, number],
-  helper: [48, Y + 1, 54] as [number, number, number],
+  helper: [55, Y + 1, 53] as [number, number, number],
 };
 
 export function buildExperienceIsland(): VoxelModel {
@@ -138,41 +138,81 @@ function buildLibrary(m: VoxelModel): void {
   m.set(51, Y + 4, 34, B.paper); // the open book
 }
 
-// — the extracurricular stage —
+// — THREE separate extracurricular buildings (never one lumped hut) —
 function buildStage(m: VoxelModel): void {
-  const x0 = 30, x1 = 50, z0 = 50, z1 = 58;
+  buildTedxStage(m);
+  buildYavanikaTheatre(m);
+  buildNssPost(m);
+}
 
-  // timber stage platform
+// TEDx — an open speaking-stage: red dais, arch, spotlight, mic
+function buildTedxStage(m: VoxelModel): void {
+  const cx = 26, z0 = 50, z1 = 58;
+  // round-ish red dais
+  m.fill(cx - 4, Y + 1, z0 + 2, cx + 4, Y + 1, z1 - 2, B.bannerCrimson);
+  m.fill(cx - 3, Y + 2, z0 + 3, cx + 3, Y + 2, z1 - 3, B.bookRed);
+  // steel arch over the dais
+  for (let y = Y + 2; y <= Y + 8; y++) {
+    m.set(cx - 5, y, z0 + 4, B.steelDark);
+    m.set(cx + 5, y, z0 + 4, B.steelDark);
+  }
+  m.fill(cx - 5, Y + 9, z0 + 4, cx + 5, Y + 9, z0 + 4, B.steelDark);
+  // spotlight hanging from the arch, aimed at the speaker
+  m.set(cx, Y + 8, z0 + 4, B.warmLight);
+  // mic stand
+  m.fill(cx, Y + 3, z0 + 4, cx, Y + 4, z0 + 4, B.steelDark);
+  m.set(cx, Y + 5, z0 + 4, B.black);
+  // audience benches
+  for (const bz of [z1, z1 + 1]) m.fill(cx - 4, Y + 1, bz + 1, cx + 4, Y + 1, bz + 1, B.wood);
+}
+
+// Yavanika — a proper little theatre: proscenium box, curtains, masks
+function buildYavanikaTheatre(m: VoxelModel): void {
+  const x0 = 35, x1 = 47, z0 = 50, z1 = 59;
+  // stage floor + enclosing side walls + rear
   m.fill(x0, Y + 1, z0, x1, Y + 1, z1, B.woodLight);
-  // curtain backdrop wall at the REAR (audience looks from +z)
-  for (let y = Y + 2; y <= Y + 7; y++)
-    m.fill(x0, y, z0, x1, y, z0, y === Y + 7 ? B.goldMetal : B.bannerCrimson);
-  // curtain folds (darker stripes)
-  for (let x = x0 + 2; x <= x1 - 2; x += 4)
-    m.fill(x, Y + 2, z0, x, Y + 6, z0, B.bookRed);
-  // stage steps down toward the audience
-  m.fill(38, Y + 1, z1 + 1, 42, Y + 1, z1 + 1, B.wood);
+  for (let y = Y + 2; y <= Y + 8; y++) {
+    m.set(x0, y, z0, B.wood);
+    m.set(x1, y, z0, B.wood);
+    m.fill(x0, y, z0, x1, y, z0, y === Y + 8 ? B.goldMetal : B.bannerCrimson);
+  }
+  // curtain folds
+  for (let x = x0 + 2; x <= x1 - 2; x += 3)
+    m.fill(x, Y + 2, z0, x, Y + 7, z0, B.bookRed);
+  // proscenium arch framing the front
+  for (let y = Y + 2; y <= Y + 9; y++) {
+    m.set(x0, y, z1, B.wood);
+    m.set(x1, y, z1, B.wood);
+  }
+  m.fill(x0, Y + 9, z0, x1, Y + 9, z1, B.roofSlate); // roof slab
+  m.fill(x0, Y + 8, z1, x1, Y + 8, z1, B.goldMetal); // marquee rail
+  // comedy/tragedy masks over the arch
+  m.set(39, Y + 7, z1, B.white);
+  m.set(43, Y + 7, z1, B.black);
+  // footlights
+  for (let x = x0 + 2; x <= x1 - 2; x += 3) m.set(x, Y + 1, z1, B.warmLight);
+}
 
-  // mic stand (TEDx spot)
-  m.fill(36, Y + 2, 53, 36, Y + 3, 53, B.steelDark);
-  m.set(36, Y + 4, 53, B.black);
-
-  // theater masks post (Yavanika spot)
-  m.fill(42, Y + 2, 56, 42, Y + 5, 56, B.wood);
-  m.set(41, Y + 4, 56, B.white); // comedy
-  m.set(43, Y + 4, 56, B.black); // tragedy
-  m.set(42, Y + 6, 56, B.trophyGold);
-
-  // sapling garden (NSS spot) — off-stage, hands in the soil
-  m.fill(46, Y, 52, 50, Y, 56, B.dirt);
-  for (const [sx, sz] of [[47, 53], [49, 55], [48, 52]] as const) {
+// NSS — a community-service post: kiosk, banner, garden plot, tools
+function buildNssPost(m: VoxelModel): void {
+  const cx = 56, cz = 52;
+  // little kiosk with an awning
+  m.fill(cx - 2, Y + 1, cz - 2, cx + 2, Y + 1, cz + 2, B.stone);
+  for (let y = Y + 2; y <= Y + 4; y++) m.walls(cx - 2, y, cz - 2, cx + 2, y, cz + 2, B.woodLight);
+  m.fill(cx - 1, Y + 2, cz + 2, cx + 1, Y + 3, cz + 2, B.air); // open counter
+  m.fill(cx - 3, Y + 5, cz - 3, cx + 3, Y + 5, cz + 3, B.bookGreen); // awning
+  m.set(cx, Y + 6, cz, B.white); // service banner pole cap
+  // banner pole with green service flag
+  m.fill(cx + 4, Y + 1, cz - 3, cx + 4, Y + 7, cz - 3, B.wood);
+  m.fill(cx + 3, Y + 6, cz - 3, cx + 3, Y + 7, cz - 3, B.bookGreen);
+  // garden plot the helper tends
+  m.fill(cx - 5, Y, cz + 3, cx - 1, Y, cz + 6, B.dirt);
+  for (const [sx, sz] of [[cx - 4, cz + 4], [cx - 2, cz + 5], [cx - 3, cz + 3]] as const) {
     m.set(sx, Y + 1, sz, B.wood);
     m.set(sx, Y + 2, sz, B.leaves);
   }
-  m.set(50, Y + 1, 53, B.water); // watering pail
-
-  // stage footlights along the audience edge
-  for (let x = x0 + 3; x <= x1 - 3; x += 5) m.set(x, Y + 1, z1, B.warmLight);
+  m.set(cx - 1, Y + 1, cz + 4, B.water); // watering pail
+  m.set(cx - 2, Y + 2, cz - 2, B.warmLight); // kiosk lamp
 }
 
 // — a flavor cottage —
