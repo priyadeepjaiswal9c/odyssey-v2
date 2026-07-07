@@ -3,14 +3,20 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { Environment, SoftShadows } from "@react-three/drei";
 import {
   EffectComposer,
+  N8AO,
   Bloom,
   GodRays,
+  DepthOfField,
+  ToneMapping,
+  HueSaturation,
   Vignette,
+  SMAA,
 } from "@react-three/postprocessing";
-import type { Resume } from "@/content/types";
+import { ToneMappingMode } from "postprocessing";
+import type { Content } from "@/content/types";
 import { useWorld } from "./store";
 import { buildStops } from "./stops";
 import { Sky, SunDisc, Clouds } from "./Sky";
@@ -26,7 +32,7 @@ import AchievementsRealm from "./realms/AchievementsRealm";
 import AboutRealm from "./realms/AboutRealm";
 
 /** The voxel world: canvas + HUD. Realms mount on demand. */
-export default function World({ resume }: { resume: Resume }) {
+export default function World({ content }: { content: Content }) {
   const quality = useWorld((s) => s.quality);
   const mounted = useWorld((s) => s.mounted);
   const setStops = useWorld((s) => s.setStops);
@@ -38,29 +44,49 @@ export default function World({ resume }: { resume: Resume }) {
     typeof window !== "undefined" && window.location.search.includes("nopost");
 
   useEffect(() => {
-    setStops(buildStops(resume));
-  }, [resume, setStops]);
+    setStops(buildStops(content));
+  }, [content, setStops]);
 
   return (
     <>
       <Canvas
-        dpr={quality === "high" ? [1, 2] : quality === "medium" ? [1, 1.5] : 1}
+        dpr={[1, 1.5]}
+        frameloop="demand"
         camera={{ position: [52, 30, 60], fov: 45, near: 0.1, far: 900 }}
-        shadows={quality !== "low" ? "soft" : false}
+        shadows={quality !== "low"}
         gl={{
-          antialias: quality === "low", // composer MSAA covers high/medium
+          antialias: quality === "low", // SMAA covers high/medium
           powerPreference: "high-performance",
         }}
         onCreated={({ gl }) => {
           gl.setClearColor(SKY.fog, 1);
-          gl.shadowMap.type = THREE.PCFSoftShadowMap;
+          // tone-mapping is the composer's job on high/medium (ACES as post)
+          gl.toneMapping =
+            quality === "low"
+              ? THREE.ACESFilmicToneMapping
+              : THREE.NoToneMapping;
+          // context loss: never a silent white canvas
+          gl.domElement.addEventListener(
+            "webglcontextlost",
+            (e) => {
+              e.preventDefault();
+              useWorld.setState({ contextLost: true });
+            },
+            false
+          );
+          gl.domElement.addEventListener("webglcontextrestored", () =>
+            useWorld.setState({ contextLost: false })
+          );
           if (process.env.NODE_ENV !== "production")
             console.log("[kalpana] canvas created");
         }}
       >
         <FrameProbe />
         <PerfGovernor />
-        <fog attach="fog" args={[SKY.fog, 100, 340]} />
+        <AnimationDriver />
+        {quality !== "low" && <SoftShadows size={24} samples={12} focus={0.6} />}
+        {/* exponential fog: depth + hides realm pop-in */}
+        <fogExp2 attach="fog" args={[SKY.fog, 0.0042]} />
         <FogRig />
         <Sky />
         <Clouds count={quality === "low" ? 12 : 26} />
@@ -82,42 +108,62 @@ export default function World({ resume }: { resume: Resume }) {
 
         <Suspense fallback={null}>
           {mounted.includes("hub") && <Hub />}
-          {mounted.includes("projects") && <ProjectsRealm resume={resume} />}
+          {mounted.includes("projects") && <ProjectsRealm content={content} />}
           {mounted.includes("experience") && <ExperienceRealm />}
           {mounted.includes("achievements") && (
-            <AchievementsRealm resume={resume} />
+            <AchievementsRealm content={content} />
           )}
-          {mounted.includes("about") && <AboutRealm resume={resume} />}
+          {mounted.includes("about") && <AboutRealm content={content} />}
         </Suspense>
 
         {!noPost && <Post quality={quality} />}
       </Canvas>
       <TourDriver />
-      <Hud resume={resume} />
+      <Hud content={content} />
     </>
   );
 }
 
-/** postprocessing by tier: god-rays + bloom + vignette (high), bloom (medium) */
+/**
+ * RTX post stack, in the mandated order:
+ * N8AO → Bloom → GodRays → DoF → ACES ToneMapping → warm grade → SMAA last.
+ * Tiers: high = everything · medium = no DoF/god-rays, halfRes AO · low = none.
+ */
 function Post({ quality }: { quality: string }) {
   const [sun, setSun] = useState<THREE.Mesh | null>(null);
+  const dofRef = useRef<{ target: THREE.Vector3 } | null>(null);
+
+  // subtle DoF focuses wherever the tour is looking
+  useFrame(() => {
+    dofRef.current?.target?.copy?.(rig.target);
+  });
 
   if (quality === "low") return <SunDisc ref={setSun} />;
 
   return (
     <>
       <SunDisc ref={setSun} />
-      <EffectComposer multisampling={quality === "high" ? 4 : 2}>
+      <EffectComposer
+        enableNormalPass
+        frameBufferType={THREE.HalfFloatType}
+        multisampling={0}
+      >
+        <N8AO
+          aoRadius={2}
+          intensity={quality === "high" ? 4 : 3}
+          color="#2a3a55"
+          halfRes={quality !== "high"}
+        />
         <Bloom
-          intensity={0.65}
-          luminanceThreshold={1.05}
+          intensity={0.75}
+          luminanceThreshold={0.9}
           luminanceSmoothing={0.2}
           mipmapBlur
         />
         {quality === "high" && sun ? (
           <GodRays
             sun={sun}
-            samples={36}
+            samples={40}
             density={0.9}
             decay={0.92}
             weight={0.09}
@@ -128,10 +174,43 @@ function Post({ quality }: { quality: string }) {
         ) : (
           <></>
         )}
+        {quality === "high" ? (
+          <DepthOfField
+            // @ts-expect-error postprocessing exposes .target on the effect
+            ref={dofRef}
+            focusDistance={0}
+            focalLength={0.9}
+            bokehScale={2.2}
+            height={480}
+          />
+        ) : (
+          <></>
+        )}
+        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        {/* warm golden-hour grade */}
+        <HueSaturation saturation={0.12} hue={0.015} />
         <Vignette eskil={false} offset={0.28} darkness={0.55} />
+        <SMAA />
       </EffectComposer>
     </>
   );
+}
+
+/**
+ * frameloop="demand" reconciliation: the world always has live animation
+ * (clouds, critters, water shimmer, particles), so this driver invalidates
+ * every frame while the world is active — nothing freezes on camera hold,
+ * and future selective pausing has a single switch to flip.
+ */
+function AnimationDriver() {
+  const invalidate = useThree((s) => s.invalidate);
+  useFrame(() => {
+    invalidate();
+  });
+  useEffect(() => {
+    invalidate(); // kick the loop on mount
+  }, [invalidate]);
+  return null;
 }
 
 /** tiny env scene rendered once into PMREM — warm sky + hot sun blob */
@@ -255,8 +334,12 @@ function FrameProbe() {
         return "entered";
       },
       render: (n = 3) => {
-        for (let k = 0; k < n; k++) advance(performance.now() + k * 16, true);
-        return `advanced ${n}`;
+        try {
+          for (let k = 0; k < n; k++) advance(performance.now() + k * 16, true);
+          return `advanced ${n}`;
+        } catch (err) {
+          return `advance error: ${(err as Error).message}`;
+        }
       },
       scene: () => {
         const out: string[] = [];

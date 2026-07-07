@@ -1,6 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Pixelify_Sans } from "next/font/google";
+import localFont from "next/font/local";
+import { Nunito } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
+
+// Monocraft (OFL 1.1) — menu, signs, HUD, headings. Body stays readable sans.
+const monocraft = localFont({
+  src: [
+    { path: "../../public/fonts/Monocraft.ttf", weight: "400" },
+    { path: "../../public/fonts/Monocraft-Bold.ttf", weight: "700" },
+  ],
+  variable: "--font-display",
+  display: "swap",
+  preload: true,
+});
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -8,47 +21,45 @@ const nunito = Nunito({
   display: "swap",
 });
 
-const pixelify = Pixelify_Sans({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "Kalpana — Priyadeep Jaiswal's Voxel World",
+  metadataBase: new URL("https://priyadeep-portfolio.vercel.app"),
+  title: "Priyadeep Jaiswal — Portfolio",
   description:
-    "A cozy voxel world you tour: Priyadeep Jaiswal's portfolio as floating islands, profession-villagers, and a hall of glowing trophies. AI engineer, IIT Patna. Led by Kip, a small glowing critter.",
+    "Priyadeep Jaiswal — AI engineer, ECE @ IIT Patna. A voxel portfolio world at golden hour: projects, experience, achievements. Résumé PDF + classic view included.",
   keywords: [
     "Priyadeep Jaiswal",
     "portfolio",
     "AI engineer",
     "IIT Patna",
+    "LLM",
     "voxel",
     "three.js",
     "interactive resume",
   ],
   authors: [{ name: "Priyadeep Jaiswal" }],
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Kalpana — Priyadeep Jaiswal's Voxel World",
+    title: "Priyadeep Jaiswal — Portfolio",
     description:
-      "Tour a cozy voxel cosmos of projects, professions, and trophies — led by Kip the glowing critter.",
+      "A voxel portfolio world at golden hour — projects, experience, achievements. In a hurry? /classic has the fast lane.",
     type: "website",
     locale: "en_US",
+    images: ["/og.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kalpana — Priyadeep Jaiswal's Voxel World",
+    title: "Priyadeep Jaiswal — Portfolio",
     description:
-      "A cozy voxel portfolio world you tour, led by a glowing critter.",
+      "A voxel portfolio world at golden hour. In a hurry? /classic.",
+    images: ["/og.png"],
   },
   robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2b1b3d",
+  themeColor: "#241c12",
   width: "device-width",
   initialScale: 1,
-  // the world is a fixed-viewport experience; text core scrolls inside its panel
   maximumScale: 5,
 };
 
@@ -56,7 +67,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${nunito.variable} ${pixelify.variable}`}>
+    <html lang="en" className={`${nunito.variable} ${monocraft.variable}`}>
       <body>
         {process.env.NODE_ENV !== "production" && (
           // dev-only: capture every error from t=0 for headless verification
@@ -67,6 +78,7 @@ export default function RootLayout({
           />
         )}
         {children}
+        <Analytics />
       </body>
     </html>
   );

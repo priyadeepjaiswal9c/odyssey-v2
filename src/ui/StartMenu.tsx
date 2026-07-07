@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
+import type { Content } from "@/content/types";
 import { audio } from "@/lib/audio";
 import { useWorld, type RealmId } from "@/world/store";
 import { BUILT_REALMS } from "@/world/registry";
 
 /**
- * Minecraft-style start menu: blocky KALPANA logo over the live world,
- * stone-textured beveled buttons with hover + click-depress.
- * The first click here is the audio-unlock gesture.
+ * Minecraft-style main menu over the live golden-hour vista.
+ * Title = the owner's name (never the codename). Stone beveled buttons.
  */
 
 const ENTRIES: { label: string; dest: "tour" | RealmId; sub?: string }[] = [
@@ -19,10 +19,9 @@ const ENTRIES: { label: string; dest: "tour" | RealmId; sub?: string }[] = [
   { label: "About", dest: "about" },
 ];
 
-export function StartMenu() {
+export function StartMenu({ content }: { content: Content }) {
   const phase = useWorld((s) => s.phase);
   const enterWorld = useWorld((s) => s.enterWorld);
-  const setWorldActive = useWorld((s) => s.setWorldActive);
 
   const hoverSfx = useCallback(() => {
     if (audio.unlocked) audio.hover();
@@ -30,18 +29,32 @@ export function StartMenu() {
 
   if (phase !== "menu") return null;
 
+  const [first, ...rest] = content.basics.name.toUpperCase().split(" ");
+
   return (
-    <div className="menu" role="dialog" aria-label="Kalpana start menu">
+    <div className="menu" role="dialog" aria-label="Main menu">
       <div className="menu-scrim" />
       <div className="menu-panel">
-        <h1 className="menu-logo" aria-label="Kalpana">
-          {"KALPANA".split("").map((ch, i) => (
-            <span key={i} style={{ animationDelay: `${i * 0.09}s` }}>
-              {ch}
-            </span>
-          ))}
+        <h1 className="menu-logo" aria-label={content.basics.name}>
+          <span className="menu-logo-line">
+            {first.split("").map((ch, i) => (
+              <span key={i} style={{ animationDelay: `${i * 0.06}s` }}>
+                {ch}
+              </span>
+            ))}
+          </span>
+          <span className="menu-logo-line">
+            {rest
+              .join(" ")
+              .split("")
+              .map((ch, i) => (
+                <span key={i} style={{ animationDelay: `${0.4 + i * 0.06}s` }}>
+                  {ch === " " ? " " : ch}
+                </span>
+              ))}
+          </span>
         </h1>
-        <p className="menu-tagline">Priyadeep Jaiswal — a voxel portfolio world</p>
+        <p className="menu-tagline">{content.basics.tagline}</p>
 
         <div className="menu-buttons">
           {ENTRIES.map((e) => {
@@ -64,12 +77,12 @@ export function StartMenu() {
           })}
         </div>
 
-        <button
-          className="menu-text-link"
-          onClick={() => setWorldActive(false)}
-        >
-          📄 read as plain text instead
-        </button>
+        <div className="menu-footlinks">
+          <a href="/resume.pdf" download>
+            ⬇ Résumé (PDF)
+          </a>
+          <a href="/classic">In a hurry? View résumé →</a>
+        </div>
       </div>
     </div>
   );

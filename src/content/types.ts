@@ -1,73 +1,77 @@
 /**
- * JSON Resume schema + extensions — the APEX→ODYSSEY feed contract (v1).
- * See ../SHARED-INTERFACES.md §1. ODYSSEY is read-only over this shape.
+ * The site's content shape — produced by `scripts/parse-resume.mjs` from
+ * `../main.tex` into `src/content/content.json`, and the shape the APEX
+ * feed publishes (versioned v1, JSON-Resume-derived; see
+ * ../SHARED-INTERFACES.md). Components never hardcode content.
  */
 
-export interface ResumeBasics {
+export interface ContentBasics {
   name: string;
-  label: string;
+  /** one-line "what I do" for the gate + classic view */
+  whatIDo: string;
+  /** blocky tagline under the menu logo */
+  tagline: string;
   email: string;
   phone?: string;
-  location: { city: string; region: string; countryCode: string };
+  location: string;
   summary: string;
-  profiles: { network: string; username: string; url: string }[];
+  profiles: { network: string; url: string }[];
+  /** top-3 for the entry gate */
+  topSkills: string[];
 }
 
-export interface ResumeWork {
-  name: string; // company
+export interface ContentWork {
+  name: string;
   position: string;
+  dates: string;
   location?: string;
-  startDate: string;
-  endDate?: string;
-  summary?: string;
   highlights: string[];
 }
 
-export interface ResumeEducation {
+export interface ContentEducation {
   institution: string;
-  area: string;
-  studyType: string;
-  startDate: string;
-  endDate: string;
+  degree: string;
+  dates: string;
   score?: string;
 }
 
-export interface ResumeProject {
+export interface ContentProject {
   name: string;
-  /** short display name used in-world */
   slug: string;
-  summary: string;
+  /** one-liner for panels + gate */
+  oneLiner: string;
+  /** stack string — doubles as keywords */
+  stack: string;
+  links: { label: string; url: string }[];
+  /** path under /public — may not exist (placeholder panel renders) */
+  screenshot: string;
   highlights: string[];
   keywords: string[];
-  url?: string;
-  repo?: string;
-  links?: { label: string; url: string }[];
 }
 
-export interface ResumeAward {
+export interface ContentAward {
   title: string;
-  awarder: string;
   summary: string;
 }
 
-export interface ResumeSkillGroup {
+export interface ContentSkillGroup {
   name: string;
   keywords: string[];
 }
 
-export interface ResumeVolunteer {
-  organization: string;
-  position: string;
+export interface ContentVolunteer {
+  role: string;
   summary: string;
 }
 
-export interface Resume {
+export interface Content {
   version: "v1";
-  basics: ResumeBasics;
-  work: ResumeWork[];
-  education: ResumeEducation[];
-  projects: ResumeProject[];
-  awards: ResumeAward[];
-  skills: ResumeSkillGroup[];
-  volunteer: ResumeVolunteer[];
+  generatedFrom?: string;
+  basics: ContentBasics;
+  work: ContentWork[];
+  education: ContentEducation[];
+  projects: ContentProject[];
+  awards: ContentAward[];
+  skills: ContentSkillGroup[];
+  volunteer: ContentVolunteer[];
 }

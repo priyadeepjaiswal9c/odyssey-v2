@@ -1,15 +1,15 @@
 "use client";
 
-import type { Resume } from "@/content/types";
+import type { Content } from "@/content/types";
 import { REALMS } from "../layout";
 import { VoxelMesh } from "../VoxelMesh";
 import { buildAchievementsIsland, ACH_TOP } from "../structures/achievements";
 import { FloatingRock } from "./common";
 
 /** The Hall of Achievements — pedestal count driven by the résumé. */
-export default function AchievementsRealm({ resume }: { resume: Resume }) {
+export default function AchievementsRealm({ content }: { content: Content }) {
   const base = REALMS.achievements.pos;
-  const n = resume.awards.length;
+  const n = content.awards.length;
 
   return (
     <group>

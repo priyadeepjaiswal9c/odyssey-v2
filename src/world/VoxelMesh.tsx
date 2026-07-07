@@ -17,21 +17,21 @@ import { useWorld } from "./store";
 const MATERIALS: Record<Exclude<MatClass, "glow">, THREE.Material> = {
   matte: new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.94,
+    roughness: 0.8, // 0.7–0.9 matte band (dirt/stone/wood)
     metalness: 0.0,
-    envMapIntensity: 0.35,
+    envMapIntensity: 0.45,
   }),
   gloss: new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.22,
+    roughness: 0.34, // the wet "RTX sheen" band (0.3–0.45)
     metalness: 0.06,
-    envMapIntensity: 1.1,
+    envMapIntensity: 1.2,
   }),
   metal: new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.32,
+    roughness: 0.35,
     metalness: 0.88,
-    envMapIntensity: 1.35,
+    envMapIntensity: 1.4,
   }),
   water: new THREE.MeshStandardMaterial({
     vertexColors: true,

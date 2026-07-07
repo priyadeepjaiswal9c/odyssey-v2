@@ -8,7 +8,7 @@ import { B } from "@/lib/voxel/palette";
 import { audio } from "@/lib/audio";
 import { VoxelMesh } from "./VoxelMesh";
 import { useWorld } from "./store";
-import { rig } from "./CameraRig";
+import { REALMS } from "./layout";
 
 /**
  * Kip — a small glowing voxel critter. Flies ahead of the camera, bobs,
@@ -71,28 +71,28 @@ export function Kip() {
     const g = group.current;
     if (!g) return;
     const s = useWorld.getState();
-    const stop = s.stops[s.targetIndex ?? s.stopIndex];
-    if (stop) target.set(...stop.kip);
+    // pure set-dressing: wander lazy figure-eights around the current
+    // realm's center — no tour role, no leading, no text. Ever.
+    const realm = s.mounted[s.mounted.length - 1] ?? "hub";
+    const c = REALMS[realm].pos;
+    const t0 = state.clock.elapsedTime * 0.12;
+    target.set(
+      c[0] + Math.sin(t0) * 16,
+      c[1] + 11 + Math.sin(t0 * 1.7) * 3,
+      c[2] + Math.sin(t0 * 2) * 12
+    );
 
-    // arrival celebration: full spin
-    if (wasFlying.current && !rig.flying) {
-      spin.current = { active: true, t: 0 };
-      idleSince.current = state.clock.elapsedTime;
-    }
-    wasFlying.current = rig.flying;
-
-    // been parked a while? do a little loop for fun
+    // once in a while, a little loop for fun
     if (
-      !rig.flying &&
-      state.clock.elapsedTime - idleSince.current > 14 &&
+      state.clock.elapsedTime - idleSince.current > 17 &&
       !spin.current.active
     ) {
       spin.current = { active: true, t: 0 };
       idleSince.current = state.clock.elapsedTime;
     }
+    void wasFlying;
 
-    // fly toward target — faster when leading a flight
-    const speed = rig.flying ? 3.2 : 1.8;
+    const speed = 1.2;
     g.position.x = THREE.MathUtils.damp(g.position.x, target.x, speed, dt);
     g.position.y = THREE.MathUtils.damp(g.position.y, target.y, speed, dt);
     g.position.z = THREE.MathUtils.damp(g.position.z, target.z, speed, dt);

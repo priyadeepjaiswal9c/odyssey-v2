@@ -2,22 +2,25 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import type { Resume } from "@/content/types";
+import type { Content } from "@/content/types";
 import { useWorld, type Quality } from "./store";
 import { StartMenu } from "@/ui/StartMenu";
+import { EntryGate } from "@/ui/EntryGate";
+import { FastLane } from "@/ui/Hud";
 
+// client-only: the canvas + anything touching window
 const World = dynamic(() => import("./World"), {
   ssr: false,
-  loading: () => <Loader />,
+  loading: () => null, // the EntryGate IS the loading screen
 });
 
 /**
  * Decides whether the voxel world runs, and layers it over the text core.
- *  - reduced-motion users stay on the text core (opt-in button to enter anyway)
- *  - no WebGL → text core only
- *  - otherwise the world auto-enters (it's the showpiece), text always a click away
+ *  - reduced-motion / no-WebGL → Classic-style text core (opt-in button)
+ *  - otherwise: EntryGate (summary) → Minecraft menu → world
+ * The recruiter FastLane persists over every phase.
  */
-export function WorldGate({ resume }: { resume: Resume }) {
+export function WorldGate({ content }: { content: Content }) {
   const { worldActive, setWorldActive, setQuality } = useWorld();
   const [capable, setCapable] = useState<boolean | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -44,19 +47,35 @@ export function WorldGate({ resume }: { resume: Resume }) {
   }
 
   return (
-    <div className="world-layer" role="application" aria-label="Kalpana voxel world">
-      <World resume={resume} />
-      <StartMenu />
+    <div
+      className="world-layer"
+      role="application"
+      aria-label="Voxel portfolio world"
+    >
+      <World content={content} />
+      <StartMenu content={content} />
+      <EntryGate content={content} />
+      <FastLane content={content} />
+      <ContextLostOverlay />
     </div>
   );
 }
 
-function Loader() {
+/** WebGL context died — offer a reload, point at the classic view */
+function ContextLostOverlay() {
+  const lost = useWorld((s) => s.contextLost);
+  if (!lost) return null;
   return (
-    <div className="world-loader" aria-hidden>
-      <div className="world-loader-glow" />
-      <p className="world-loader-title">Kalpana</p>
-      <p className="world-loader-sub">waking Kip…</p>
+    <div className="ctx-lost" role="alert">
+      <p>The 3D view hit a graphics hiccup.</p>
+      <div>
+        <button className="mc-btn" onClick={() => window.location.reload()}>
+          Reload world
+        </button>
+        <a className="mc-btn" href="/classic">
+          View résumé instead
+        </a>
+      </div>
     </div>
   );
 }
@@ -68,7 +87,6 @@ function detectCapability(): { webgl: boolean; tier: Quality } {
       canvas.getContext("webgl2") ??
       (canvas.getContext("webgl") as WebGLRenderingContext | null);
     if (!gl) return { webgl: false, tier: "low" };
-    // crude but effective tiering: DPR + cores + mobile UA
     const cores = navigator.hardwareConcurrency ?? 4;
     const mobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     const tier: Quality =

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Resume } from "@/content/types";
+import type { Content } from "@/content/types";
 import { audio } from "@/lib/audio";
 import { REALMS } from "../layout";
 import { VoxelMesh } from "../VoxelMesh";
@@ -10,10 +10,10 @@ import { buildAboutIsland, ABOUT_TOP, ABOUT_POI } from "../structures/about";
 import { FloatingRock } from "./common";
 
 /** The About island — home base with clickable social signposts. */
-export default function AboutRealm({ resume }: { resume: Resume }) {
+export default function AboutRealm({ content }: { content: Content }) {
   const base = REALMS.about.pos;
-  const github = resume.basics.profiles.find((p) => p.network === "GitHub");
-  const linkedin = resume.basics.profiles.find((p) => p.network === "LinkedIn");
+  const github = content.basics.profiles.find((p) => p.network === "GitHub");
+  const linkedin = content.basics.profiles.find((p) => p.network === "LinkedIn");
 
   return (
     <group>
@@ -34,11 +34,11 @@ export default function AboutRealm({ resume }: { resume: Resume }) {
         {linkedin && <SignHotspot local={ABOUT_POI.signLinkedIn} url={linkedin.url} />}
         <SignHotspot
           local={ABOUT_POI.signEmail}
-          url={`mailto:${resume.basics.email}`}
+          url={`mailto:${content.basics.email}`}
         />
         <SignHotspot
           local={ABOUT_POI.mailbox}
-          url={`mailto:${resume.basics.email}`}
+          url={`mailto:${content.basics.email}`}
         />
       </group>
       <FloatingRock position={[base[0] - 34, base[1] + 8, base[2] - 22]} seed={501} size={4} />

@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import type { Resume } from "@/content/types";
+import type { Content } from "@/content/types";
 import { REALMS, PROJECT_ISLAND_OFFSETS } from "../layout";
 import { VoxelMesh } from "../VoxelMesh";
 import {
@@ -33,9 +33,9 @@ import { FloatingRock } from "./common";
  * Meridian (control tower + power grid) · TARK (marble courthouse-library) ·
  * Campus Cab (transit hub with a live rail loop). Silent critters included.
  */
-export default function ProjectsRealm({ resume }: { resume: Resume }) {
+export default function ProjectsRealm({ content }: { content: Content }) {
   const base = REALMS.projects.pos;
-  const has = (slug: string) => resume.projects.some((p) => p.slug === slug);
+  const has = (slug: string) => content.projects.some((p) => p.slug === slug);
 
   return (
     <group>

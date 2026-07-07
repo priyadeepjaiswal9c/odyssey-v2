@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Resume } from "@/content/types";
+import type { Content } from "@/content/types";
 import { audio } from "@/lib/audio";
 import { useWorld, type RealmId } from "@/world/store";
-import { REALMS } from "@/world/layout";
-import { BUILT_REALMS } from "@/world/registry";
+import { REALM_LABELS, BUILT_REALMS } from "@/world/registry";
 
 /**
- * The HUD — wordmark, realm compass, mute, a minimal tour dock,
- * and the project showcase card. No narrator: light + sound carry it.
+ * In-world HUD: realm compass, tour dock, showcase cards, toggles.
+ * (The recruiter FastLane bar is separate and persists over the menu too.)
  */
-export function Hud({ resume }: { resume: Resume }) {
+export function Hud({ content }: { content: Content }) {
   const phase = useWorld((s) => s.phase);
 
   // keyboard: ← → step stops, space toggles the tour, Esc closes the card
@@ -41,22 +40,58 @@ export function Hud({ resume }: { resume: Resume }) {
   if (phase === "menu") return null;
   return (
     <div className="hud">
-      <Wordmark name={resume.basics.name} label={resume.basics.label} />
       <RealmNav />
-      <ShowcaseCard resume={resume} />
+      <ShowcaseCard content={content} />
       <TourDock />
     </div>
   );
 }
 
-function Wordmark({ name, label }: { name: string; label: string }) {
+/**
+ * The recruiter fast lane — persistent on the menu AND in every realm.
+ * Résumé (PDF) · realms · GitHub · LinkedIn · Contact · Classic view.
+ */
+export function FastLane({ content }: { content: Content }) {
+  const phase = useWorld((s) => s.phase);
+  const goToRealm = useWorld((s) => s.goToRealm);
+  const enterWorld = useWorld((s) => s.enterWorld);
+  const github = content.basics.profiles.find((p) => p.network === "GitHub");
+  const linkedin = content.basics.profiles.find(
+    (p) => p.network === "LinkedIn"
+  );
+
+  const jump = (realm: RealmId) => {
+    audio.click();
+    if (phase === "menu") enterWorld(realm);
+    else goToRealm(realm);
+  };
+
   return (
-    <div className="hud-wordmark">
-      <span className="hud-title">KALPANA</span>
-      <span className="hud-subtitle">
-        {name} · {label.split("·")[0].trim()}
-      </span>
-    </div>
+    <nav className="fastlane" aria-label="Quick links">
+      <span className="fastlane-name">{content.basics.name.toUpperCase()}</span>
+      <div className="fastlane-links">
+        <a className="fastlane-cta" href="/resume.pdf" download>
+          ⬇ Résumé
+        </a>
+        <button onClick={() => jump("projects")}>Projects</button>
+        <button onClick={() => jump("experience")}>Experience</button>
+        <button onClick={() => jump("achievements")}>Achievements</button>
+        {github && (
+          <a href={github.url} target="_blank" rel="noopener">
+            GitHub
+          </a>
+        )}
+        {linkedin && (
+          <a href={linkedin.url} target="_blank" rel="noopener">
+            LinkedIn
+          </a>
+        )}
+        <a href={`mailto:${content.basics.email}`}>Contact</a>
+        <a href="/classic" className="fastlane-classic">
+          Classic view
+        </a>
+      </div>
+    </nav>
   );
 }
 
@@ -88,7 +123,7 @@ function RealmNav() {
               goToRealm(r);
             }}
           >
-            {REALMS[r].label}
+            {REALM_LABELS[r]}
             {!built && <span className="hud-soon">soon</span>}
           </button>
         );
@@ -178,19 +213,20 @@ interface CardData {
   summary?: string;
   items: string[];
   links?: { label: string; url: string }[];
+  /** project slug → screenshot slot */
+  screenshot?: string;
 }
 
 /** builds card content for a stop's showcase slug — project or #special */
-function buildCard(slug: string, resume: Resume): CardData | null {
+function buildCard(slug: string, content: Content): CardData | null {
   switch (slug) {
     case "#work": {
-      const w = resume.work[0];
+      const w = content.work[0];
       if (!w) return null;
       return {
         kicker: "✦ experience",
         title: `${w.position} · ${w.name}`,
-        tags: `${fmtRange(w.startDate, w.endDate)}${w.location ? ` · ${w.location}` : ""}`,
-        summary: w.summary,
+        tags: `${w.dates}${w.location ? ` · ${w.location}` : ""}`,
         items: w.highlights,
       };
     }
@@ -198,67 +234,58 @@ function buildCard(slug: string, resume: Resume): CardData | null {
       return {
         kicker: "✦ education",
         title: "Education",
-        items: resume.education.map(
+        items: content.education.map(
           (e) =>
-            `${e.institution} — ${e.studyType} in ${e.area} (${fmtRange(e.startDate, e.endDate)}${e.score ? `, ${e.score}` : ""})`
+            `${e.institution} — ${e.degree} (${e.dates}${e.score ? `, ${e.score}` : ""})`
         ),
       };
     case "#volunteer":
       return {
         kicker: "✦ beyond the classroom",
         title: "Extra Curricular",
-        items: resume.volunteer.map(
-          (v) => `${v.position}, ${v.organization} — ${v.summary}`
-        ),
+        items: content.volunteer.map((v) => `${v.role} — ${v.summary}`),
       };
     case "#awards":
       return {
-        kicker: "✦ the trophy hall",
+        kicker: "✦ the monument hall",
         title: "Achievements",
-        items: resume.awards.map((a) => `${a.title} — ${a.summary}`),
+        items: content.awards.map((a) => `${a.title} — ${a.summary}`),
       };
     case "#contact": {
       const links = [
-        { label: "Email", url: `mailto:${resume.basics.email}` },
-        ...resume.basics.profiles.map((p) => ({
+        { label: "Email", url: `mailto:${content.basics.email}` },
+        ...content.basics.profiles.map((p) => ({
           label: p.network,
           url: p.url,
         })),
+        { label: "Résumé PDF", url: "/resume.pdf" },
       ];
       return {
         kicker: "✦ say hi",
-        title: resume.basics.name,
-        tags: `${resume.basics.location.city}, ${resume.basics.location.region}`,
-        summary: resume.basics.summary,
+        title: content.basics.name,
+        tags: content.basics.location,
+        summary: content.basics.summary,
         items: [],
         links,
       };
     }
     default: {
-      const project = resume.projects.find((p) => p.slug === slug);
+      const project = content.projects.find((p) => p.slug === slug);
       if (!project) return null;
       return {
         kicker: "✦ project showcase",
         title: project.name,
-        tags: project.keywords.join(" · "),
-        summary: project.summary,
+        tags: project.stack,
+        summary: project.oneLiner,
         items: project.highlights,
         links: project.links,
+        screenshot: project.screenshot,
       };
     }
   }
 }
 
-function fmtRange(start: string, end?: string) {
-  const f = (iso: string) => {
-    const [y, mo] = iso.split("-");
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    return mo ? `${months[parseInt(mo, 10) - 1]} ${y}` : y;
-  };
-  return `${f(start)} – ${end ? f(end) : "Present"}`;
-}
-
-function ShowcaseCard({ resume }: { resume: Resume }) {
+function ShowcaseCard({ content }: { content: Content }) {
   const slug = useWorld((s) => s.showcaseSlug);
   const dismiss = useWorld((s) => s.dismissShowcase);
   const [visible, setVisible] = useState(false);
@@ -270,9 +297,9 @@ function ShowcaseCard({ resume }: { resume: Resume }) {
   }, [slug]);
 
   const card = useMemo(
-    () => (lastSlug.current ? buildCard(lastSlug.current, resume) : null),
+    () => (lastSlug.current ? buildCard(lastSlug.current, content) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [slug, resume]
+    [slug, content]
   );
 
   if (!card) return null;
@@ -285,6 +312,7 @@ function ShowcaseCard({ resume }: { resume: Resume }) {
       <p className="hud-card-kicker">{card.kicker}</p>
       <h2 className="hud-card-title">{card.title}</h2>
       {card.tags && <p className="hud-card-tags">{card.tags}</p>}
+      {card.screenshot && <Screenshot src={card.screenshot} title={card.title} />}
       {card.summary && <p className="hud-card-summary">{card.summary}</p>}
       {card.items.length > 0 && (
         <ul className="hud-card-list">
@@ -303,5 +331,26 @@ function ShowcaseCard({ resume }: { resume: Resume }) {
         </div>
       )}
     </aside>
+  );
+}
+
+/** real screenshot if present, stylized placeholder if not (never stalls) */
+function Screenshot({ src, title }: { src: string; title: string }) {
+  const [missing, setMissing] = useState(false);
+  if (missing)
+    return (
+      <div className="hud-shot hud-shot-placeholder" aria-hidden>
+        <span>▦</span>
+        <small>{title.split("–")[0].split("—")[0].trim()}</small>
+      </div>
+    );
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="hud-shot"
+      src={src}
+      alt={`${title} screenshot`}
+      onError={() => setMissing(true)}
+    />
   );
 }

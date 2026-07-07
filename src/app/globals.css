@@ -16,8 +16,8 @@
   --glow: #ffe9c4;
   --steel: #8a939e;
 
-  --font-body: var(--font-body, ui-rounded, "Nunito", system-ui, sans-serif);
-  --font-display: var(--font-display, "Pixelify Sans", monospace);
+  /* --font-body / --font-display come from next/font on <html>
+     (Nunito body · Monocraft display) — never redefine them here */
 
   --radius: 14px;
   --shadow-soft: 0 8px 32px rgba(18, 12, 6, 0.45);
@@ -792,4 +792,278 @@ a:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* ————————————————————————————————————————————————
+   Entry gate — the one-screen summary (never a bare loader)
+   ———————————————————————————————————————————————— */
+
+.gate {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(1000px 520px at 50% 0%, rgba(255, 158, 100, 0.12), transparent 60%),
+    var(--bg);
+}
+
+.gate-card {
+  width: min(680px, 94vw);
+  padding: 30px 34px;
+  background: rgba(28, 21, 14, 0.72);
+  border: 1px solid rgba(255, 184, 77, 0.3);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.gate-kicker {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+}
+
+.gate-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 5vw, 2.6rem);
+  color: var(--glow);
+  margin: 6px 0 4px;
+  text-shadow: 0 3px 0 rgba(74, 54, 38, 0.9);
+}
+
+.gate-what {
+  color: rgba(255, 243, 221, 0.9);
+  margin-bottom: 18px;
+}
+
+.gate-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 560px) {
+  .gate-row { grid-template-columns: 1fr; }
+}
+
+.gate-col h2 {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  color: var(--ember);
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.gate-col ul {
+  list-style: none;
+}
+
+.gate-col li {
+  padding: 4px 0;
+  font-size: 0.92rem;
+  color: rgba(255, 243, 221, 0.92);
+  border-bottom: 1px dashed rgba(185, 138, 106, 0.25);
+}
+
+.gate-col small {
+  color: var(--clay);
+}
+
+.gate-links {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.gate-links a {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 2px solid rgba(255, 184, 77, 0.4);
+}
+
+.gate-links a:hover {
+  color: var(--glow);
+}
+
+.gate-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.gate-actions .mc-btn {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.gate-enter {
+  font-size: 1.15rem;
+}
+
+/* ————— recruiter fast lane (persistent) ————— */
+
+.fastlane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(rgba(20, 14, 8, 0.85), rgba(20, 14, 8, 0.55));
+  border-bottom: 1px solid rgba(255, 184, 77, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.fastlane-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  color: var(--glow);
+  white-space: nowrap;
+}
+
+.fastlane-links {
+  display: flex;
+  align-items: center;
+  gap: 4px 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.fastlane-links a,
+.fastlane-links button {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 233, 196, 0.85);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 4px 2px;
+}
+
+.fastlane-links a:hover,
+.fastlane-links button:hover {
+  color: var(--glow);
+  text-shadow: 0 0 12px rgba(255, 184, 77, 0.6);
+}
+
+.fastlane-cta {
+  color: var(--bg-deep) !important;
+  background: linear-gradient(135deg, var(--gold), var(--ember)) !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  font-weight: 700;
+}
+
+.fastlane-classic {
+  border: 1px dashed rgba(255, 184, 77, 0.5) !important;
+  border-radius: 6px !important;
+  padding: 4px 9px !important;
+}
+
+/* push in-world nav below the fastlane */
+.hud-nav { top: 52px; }
+
+/* two-line blocky logo */
+.menu-logo {
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+  font-size: clamp(2rem, 6.5vw, 3.6rem);
+}
+
+.menu-logo-line {
+  display: flex;
+  justify-content: center;
+}
+
+.menu-footlinks {
+  display: flex;
+  gap: 22px;
+  margin-top: 16px;
+}
+
+.menu-footlinks a {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  color: rgba(255, 233, 196, 0.85);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 184, 77, 0.45);
+  padding-bottom: 2px;
+}
+
+.menu-footlinks a:hover {
+  color: var(--glow);
+}
+
+/* ————— showcase screenshot slot ————— */
+
+.hud-shot {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 184, 77, 0.3);
+  margin: 4px 0 12px;
+  image-rendering: auto;
+}
+
+.hud-shot-placeholder {
+  height: 120px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,184,77,0.06) 0 12px, rgba(255,158,100,0.1) 12px 24px);
+  color: var(--clay);
+}
+
+.hud-shot-placeholder span { font-size: 2rem; }
+.hud-shot-placeholder small { font-family: var(--font-display); font-size: 0.7rem; }
+
+/* ————— context-lost fallback ————— */
+
+.ctx-lost {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-content: center;
+  gap: 16px;
+  text-align: center;
+  background: rgba(20, 14, 8, 0.92);
+  font-family: var(--font-display);
+  color: var(--glow);
+}
+
+.ctx-lost div { display: flex; gap: 12px; justify-content: center; }
+.ctx-lost .mc-btn { text-decoration: none; }
+
+/* ————— classic view ————— */
+
+.classic-page .rc {
+  padding-top: 40px;
+}
+
+.rc-btn {
+  background: linear-gradient(135deg, var(--gold), var(--ember));
+  color: var(--bg-deep) !important;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 800;
+  text-decoration: none !important;
+  border-bottom: none !important;
 }

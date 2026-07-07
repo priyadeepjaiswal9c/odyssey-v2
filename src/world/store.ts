@@ -17,8 +17,6 @@ export interface TourStop {
   cam: [number, number, number];
   /** camera lookAt */
   target: [number, number, number];
-  /** where Kip hovers at this stop */
-  kip: [number, number, number];
   /** project slug → showcase card in HUD */
   showcase?: string;
   /** auto-tour hold at this stop (ms) */
@@ -31,9 +29,13 @@ interface WorldState {
   setWorldActive: (on: boolean) => void;
   quality: Quality;
   setQuality: (q: Quality) => void;
-  /** start menu → world */
-  phase: "menu" | "world";
-  /** first gesture: unlock audio, leave the menu, optionally start touring */
+  /** WebGL context lost — show the reload fallback, never a white canvas */
+  contextLost: boolean;
+  /** entry gate → start menu → world */
+  phase: "gate" | "menu" | "world";
+  /** gate click: unlock audio, show the Minecraft menu */
+  openMenu: () => void;
+  /** menu click: unlock audio, enter the world, optionally start touring */
   enterWorld: (dest: "tour" | RealmId) => void;
 
   // — audio —
@@ -61,6 +63,7 @@ interface WorldState {
   startTour: () => void;
   pauseTour: () => void;
   goToRealm: (realm: RealmId) => void;
+  goToStopId: (id: string) => void;
   dismissShowcase: () => void;
 }
 
@@ -75,8 +78,14 @@ export const useWorld = create<WorldState>((set, get) => ({
   },
   quality: "high",
   setQuality: (quality) => set({ quality }),
+  contextLost: false,
 
-  phase: "menu",
+  phase: "gate",
+  openMenu: () => {
+    audio.unlock();
+    audio.click();
+    set({ phase: "menu", muted: audio.muted });
+  },
   enterWorld: (dest) => {
     audio.unlock();
     audio.click();
@@ -159,6 +168,15 @@ export const useWorld = create<WorldState>((set, get) => ({
   goToRealm: (realm) => {
     const { stops } = get();
     const idx = stops.findIndex((s) => s.realm === realm);
+    if (idx >= 0) {
+      set({ touring: false });
+      get().goTo(idx);
+    }
+  },
+
+  goToStopId: (id) => {
+    const { stops } = get();
+    const idx = stops.findIndex((s) => s.id === id);
     if (idx >= 0) {
       set({ touring: false });
       get().goTo(idx);

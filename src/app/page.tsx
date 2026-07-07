@@ -1,25 +1,23 @@
-import { getResume } from "@/content/loader";
+import { getContent } from "@/content/loader";
 import { ResumeCore } from "@/ui/ResumeCore";
 import { WorldGate } from "@/world/WorldGate";
 
 export default async function Home() {
-  const resume = await getResume();
+  const content = await getContent();
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: resume.basics.name,
-    email: resume.basics.email,
-    jobTitle: resume.basics.label,
-    url: resume.basics.profiles.find((p) => p.network === "GitHub")?.url,
-    sameAs: resume.basics.profiles.map((p) => p.url),
+    name: content.basics.name,
+    email: content.basics.email,
+    jobTitle: content.basics.whatIDo,
+    url: content.basics.profiles.find((p) => p.network === "GitHub")?.url,
+    sameAs: content.basics.profiles.map((p) => p.url),
     address: {
       "@type": "PostalAddress",
-      addressLocality: resume.basics.location.city,
-      addressRegion: resume.basics.location.region,
-      addressCountry: resume.basics.location.countryCode,
+      addressLocality: content.basics.location,
     },
-    alumniOf: resume.education.map((e) => ({
+    alumniOf: content.education.map((e) => ({
       "@type": "EducationalOrganization",
       name: e.institution,
     })),
@@ -31,9 +29,9 @@ export default async function Home() {
         Skip to text résumé
       </a>
       {/* the voxel world layers itself above when the device can carry it */}
-      <WorldGate resume={resume} />
+      <WorldGate content={content} />
       {/* the SSR text core — always present, always complete */}
-      <ResumeCore resume={resume} />
+      <ResumeCore content={content} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
