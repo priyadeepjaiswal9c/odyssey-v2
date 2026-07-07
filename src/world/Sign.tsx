@@ -14,16 +14,18 @@ export function Sign({
   rotation = [0, 0, 0],
   size = 1.6,
   plank = true,
-  posts = false,
+  postHeight = 0,
   color = "#ffe9c4",
 }: {
   text: string;
   sub?: string;
+  /** position of the sign's CENTER */
   position: [number, number, number];
   rotation?: [number, number, number];
   size?: number;
   plank?: boolean;
-  posts?: boolean;
+  /** >0 → wooden posts running from the plank down this many units to the ground */
+  postHeight?: number;
   color?: string;
 }) {
   const width = Math.max(text.length, sub ? sub.length * 0.62 : 0) * size * 0.62 + size;
@@ -48,14 +50,14 @@ export function Sign({
           </mesh>
         </>
       )}
-      {posts && (
+      {postHeight > 0 && (
         <>
-          <mesh position={[-width / 2 + 0.3, -height, -0.2]} castShadow>
-            <boxGeometry args={[0.4, height * 1.6, 0.4]} />
+          <mesh position={[-width / 2 + 0.3, -postHeight / 2, -0.2]} castShadow>
+            <boxGeometry args={[0.5, postHeight, 0.5]} />
             <meshStandardMaterial color="#4a3320" roughness={0.85} />
           </mesh>
-          <mesh position={[width / 2 - 0.3, -height, -0.2]} castShadow>
-            <boxGeometry args={[0.4, height * 1.6, 0.4]} />
+          <mesh position={[width / 2 - 0.3, -postHeight / 2, -0.2]} castShadow>
+            <boxGeometry args={[0.5, postHeight, 0.5]} />
             <meshStandardMaterial color="#4a3320" roughness={0.85} />
           </mesh>
         </>

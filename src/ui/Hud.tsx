@@ -155,6 +155,8 @@ function RealmNav() {
   );
 }
 
+/** sleek edge navigation: chevrons on the screen edges, a corner tour
+ *  chip, and scroll-wheel stepping between stops */
 function TourDock() {
   const touring = useWorld((s) => s.touring);
   const targetIndex = useWorld((s) => s.targetIndex);
@@ -162,11 +164,27 @@ function TourDock() {
   const stops = useWorld((s) => s.stops);
   const { next, prev, startTour, pauseTour } = useWorld.getState();
   const flying = targetIndex !== null;
+  const wheelLock = useRef(0);
+
+  // scroll-wheel steps the tour (debounced; card scrolling untouched)
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if ((e.target as HTMLElement | null)?.closest(".hud-card")) return;
+      const now = performance.now();
+      if (now - wheelLock.current < 900 || Math.abs(e.deltaY) < 12) return;
+      wheelLock.current = now;
+      const st = useWorld.getState();
+      if (e.deltaY > 0) st.next();
+      else st.prev();
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, []);
 
   return (
-    <div className="hud-dock">
+    <>
       <button
-        className="hud-ctl"
+        className="edge-nav edge-nav-left"
         onClick={() => {
           audio.click();
           prev();
@@ -174,22 +192,10 @@ function TourDock() {
         disabled={stopIndex === 0 && !flying}
         aria-label="Previous stop"
       >
-        ◀
+        ‹
       </button>
       <button
-        className="hud-ctl hud-ctl-main"
-        onMouseEnter={() => audio.hover()}
-        onClick={() => {
-          audio.click();
-          if (touring) pauseTour();
-          else startTour();
-        }}
-        aria-label={touring ? "Pause tour" : "Resume tour"}
-      >
-        {touring ? "❚❚" : "▶ tour"}
-      </button>
-      <button
-        className="hud-ctl"
+        className="edge-nav edge-nav-right"
         onClick={() => {
           audio.click();
           next();
@@ -197,12 +203,25 @@ function TourDock() {
         disabled={stopIndex >= stops.length - 1 && !flying}
         aria-label="Next stop"
       >
-        ▶
+        ›
       </button>
-      <span className="hud-dock-count">
-        {Math.min((targetIndex ?? stopIndex) + 1, stops.length)} / {stops.length}
-      </span>
-    </div>
+      <div className="tour-chip">
+        <button
+          onMouseEnter={() => audio.hover()}
+          onClick={() => {
+            audio.click();
+            if (touring) pauseTour();
+            else startTour();
+          }}
+          aria-label={touring ? "Pause tour" : "Start tour"}
+        >
+          {touring ? "❚❚" : "▶"}
+        </button>
+        <span>
+          {Math.min((targetIndex ?? stopIndex) + 1, stops.length)}/{stops.length}
+        </span>
+      </div>
+    </>
   );
 }
 

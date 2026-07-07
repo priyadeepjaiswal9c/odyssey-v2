@@ -26,18 +26,18 @@ export default function Hub() {
               text={REALM_LABELS[realm].toUpperCase()}
               plank={false}
               size={0.6}
-              position={[sign.pos[0] - 22, sign.pos[1] + 6.2, sign.pos[2] - 22]}
+              position={[sign.pos[0] - 22, sign.pos[1] + 5.5, sign.pos[2] - 22]}
               rotation={[0, Math.atan2(sign.pos[0] - 22, sign.pos[2] - 22), 0]}
             />
           </group>
         )
       )}
-      {/* the beacon is ticklish (easter egg) */}
+      {/* the beacon chimes when tickled (easter egg) */}
       <mesh
         position={[0, HUB_TOP + 4, 0]}
         onClick={(e) => {
           e.stopPropagation();
-          window.dispatchEvent(new CustomEvent("kip:celebrate"));
+          audio.chime();
         }}
         onPointerOver={() => (document.body.style.cursor = "pointer")}
         onPointerOut={() => (document.body.style.cursor = "")}

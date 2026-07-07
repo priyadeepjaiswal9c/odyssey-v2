@@ -22,7 +22,6 @@ import { Sky, SunDisc, Clouds } from "./Sky";
 import { Particles } from "./Particles";
 import { SKY, SUN_DIR, REALMS } from "./layout";
 import { CameraRig, rig } from "./CameraRig";
-import { Kip } from "./Kip";
 import { Hud } from "@/ui/Hud";
 import Hub from "./realms/Hub";
 import ProjectsRealm from "./realms/ProjectsRealm";
@@ -103,7 +102,6 @@ export default function World({ content }: { content: Content }) {
         )}
 
         <CameraRig />
-        <Kip />
 
         <Suspense fallback={null}>
           {mounted.includes("hub") && <Hub />}

@@ -35,10 +35,9 @@ export default function AchievementsRealm({ content }: { content: Content }) {
         <Sign
           text="MONUMENT HALL"
           sub="Achievements"
-          position={[0, ACH_TOP + 14, -13]}
+          position={[0, ACH_TOP + 11.6, -13.6]}
           rotation={[0, 0, 0]}
-          size={1.3}
-          posts
+          size={1.05}
         />
 
         {/* reflective polished floor (planar mirror over the marble disc) */}

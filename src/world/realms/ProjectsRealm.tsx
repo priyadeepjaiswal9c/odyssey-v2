@@ -69,26 +69,14 @@ function MeridianIsland({ base }: { base: [number, number, number] }) {
     <group position={islandPos(base, "meridian", MERIDIAN_TOP)}>
       <VoxelMesh build={buildMeridianIsland} maxHalos={10} />
       <MapFox />
-      {/* island banner — proud but off the camera corridor */}
+      {/* one grounded banner at the front rim */}
       <Sign
         text="MERIDIAN"
         sub="Energy Supply-Chain AI"
-        position={[-14, MERIDIAN_TOP + 13, 4]}
+        position={[-9, MERIDIAN_TOP + 5.6, 13]}
         rotation={face}
-        size={1.45}
-        posts
-      />
-      <Sign
-        text="CONTROL TOWER"
-        position={[-4.5, MERIDIAN_TOP + 3.4, 3]}
-        rotation={face}
-        size={0.95}
-      />
-      <Sign
-        text="SUBSTATION"
-        position={[13.5, MERIDIAN_TOP + 3.4, 18]}
-        rotation={face}
-        size={0.95}
+        size={1.15}
+        postHeight={5.6}
       />
     </group>
   );
@@ -135,16 +123,10 @@ function TarkIsland({ base }: { base: [number, number, number] }) {
       <Sign
         text="TARK"
         sub="Legal AI"
-        position={[-14, TARK_TOP + 13, 5]}
+        position={[-10, TARK_TOP + 5.6, 13]}
         rotation={face}
-        size={1.45}
-        posts
-      />
-      <Sign
-        text="COURTHOUSE"
-        position={[0, TARK_TOP + 3.6, 8]}
-        rotation={face}
-        size={0.95}
+        size={1.15}
+        postHeight={5.6}
       />
     </group>
   );
@@ -193,16 +175,10 @@ function CabIsland({ base }: { base: [number, number, number] }) {
       <Sign
         text="CAMPUS CAB"
         sub="Campus Rides"
-        position={[-14, CAB_TOP + 13, 4]}
+        position={[-12, CAB_TOP + 5.6, 11]}
         rotation={face}
-        size={1.35}
-        posts
-      />
-      <Sign
-        text="STATION"
-        position={[0, CAB_TOP + 10.5, 5]}
-        rotation={face}
-        size={0.95}
+        size={1.1}
+        postHeight={5.6}
       />
     </group>
   );

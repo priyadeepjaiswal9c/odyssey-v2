@@ -46,15 +46,15 @@ export default function AboutRealm({ content }: { content: Content }) {
         <Sign
           text="HOME"
           sub="About · Contact"
-          position={[0, ABOUT_TOP + 14, -3]}
+          position={[9, ABOUT_TOP + 4.8, 11]}
           rotation={[0, Math.PI * 0.15, 0]}
-          size={1.1}
-          posts
+          size={0.85}
+          postHeight={4.8}
         />
-        <Sign text="GITHUB" plank={false} size={0.55} position={[ABOUT_POI.signGitHub[0] - 26, ABOUT_TOP + 6.6, ABOUT_POI.signGitHub[2] - 26]} />
-        <Sign text="LINKEDIN" plank={false} size={0.55} position={[ABOUT_POI.signLinkedIn[0] - 26, ABOUT_TOP + 6.6, ABOUT_POI.signLinkedIn[2] - 26]} />
-        <Sign text="EMAIL" plank={false} size={0.55} position={[ABOUT_POI.signEmail[0] - 26, ABOUT_TOP + 6.6, ABOUT_POI.signEmail[2] - 26]} />
-        <Sign text="MAILBOX" plank={false} size={0.5} position={[ABOUT_POI.mailbox[0] - 26, ABOUT_TOP + 5.6, ABOUT_POI.mailbox[2] - 26]} color="#ffb84d" />
+        <Sign text="GITHUB" plank={false} size={0.55} position={[ABOUT_POI.signGitHub[0] - 26, ABOUT_TOP + 5.7, ABOUT_POI.signGitHub[2] - 26]} />
+        <Sign text="LINKEDIN" plank={false} size={0.55} position={[ABOUT_POI.signLinkedIn[0] - 26, ABOUT_TOP + 5.7, ABOUT_POI.signLinkedIn[2] - 26]} />
+        <Sign text="EMAIL" plank={false} size={0.55} position={[ABOUT_POI.signEmail[0] - 26, ABOUT_TOP + 5.7, ABOUT_POI.signEmail[2] - 26]} />
+        <Sign text="MAILBOX" plank={false} size={0.5} position={[ABOUT_POI.mailbox[0] - 26, ABOUT_TOP + 4.9, ABOUT_POI.mailbox[2] - 26]} color="#ffb84d" />
       </group>
       <FloatingRock position={[base[0] - 34, base[1] + 8, base[2] - 22]} seed={501} size={4} />
       <FloatingRock position={[base[0] + 32, base[1] + 16, base[2] + 26]} seed={502} size={3} />
