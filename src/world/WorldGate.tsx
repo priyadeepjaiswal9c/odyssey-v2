@@ -4,9 +4,8 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { Content } from "@/content/types";
 import { useWorld, type Quality } from "./store";
-import { StartMenu } from "@/ui/StartMenu";
 import { EntryGate } from "@/ui/EntryGate";
-import { FastLane } from "@/ui/Hud";
+import { TopBar } from "@/ui/Hud";
 
 // client-only: the canvas + anything touching window
 const World = dynamic(() => import("./World"), {
@@ -53,9 +52,8 @@ export function WorldGate({ content }: { content: Content }) {
       aria-label="Voxel portfolio world"
     >
       <World content={content} />
-      <StartMenu content={content} />
       <EntryGate content={content} />
-      <FastLane content={content} />
+      <TopBar content={content} />
       <ContextLostOverlay />
     </div>
   );

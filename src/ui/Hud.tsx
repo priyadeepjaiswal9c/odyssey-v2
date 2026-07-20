@@ -1,34 +1,40 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Sun,
+  Moon,
+  Volume2,
+  VolumeX,
+  FileText,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpRight,
+  Download,
+  Mail,
+  MousePointer2,
+} from "lucide-react";
 import type { Content } from "@/content/types";
 import { audio } from "@/lib/audio";
 import { useWorld, type RealmId } from "@/world/store";
 import { REALM_LABELS, BUILT_REALMS } from "@/world/registry";
 
-/**
- * In-world HUD: realm compass, tour dock, showcase cards, toggles.
- * (The recruiter FastLane bar is separate and persists over the menu too.)
- */
+/** In-world HUD: the showcase card, edge nav, and the scroll hint. */
 export function Hud({ content }: { content: Content }) {
   const phase = useWorld((s) => s.phase);
 
-  // keyboard: ← → step stops, space toggles the tour, Esc closes the card
+  // keyboard: arrows / space step through stops; Esc closes the card
   useEffect(() => {
-    if (phase === "menu") return;
+    if (phase !== "world") return;
     const onKey = (e: KeyboardEvent) => {
       const st = useWorld.getState();
-      if (e.key === "ArrowRight") {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         audio.click();
         st.next();
-      } else if (e.key === "ArrowLeft") {
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         audio.click();
         st.prev();
-      } else if (e.key === " " && !(e.target instanceof HTMLButtonElement)) {
-        e.preventDefault();
-        audio.click();
-        if (st.touring) st.pauseTour();
-        else st.startTour();
       } else if (e.key === "Escape") {
         st.dismissShowcase();
       }
@@ -37,66 +43,24 @@ export function Hud({ content }: { content: Content }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [phase]);
 
-  if (phase === "menu") return null;
+  if (phase !== "world") return null;
   return (
     <div className="hud">
-      <RealmNav />
       <ShowcaseCard content={content} />
-      <TourDock />
+      <EdgeNav />
+      <ScrollHint />
     </div>
   );
 }
 
 /**
- * The recruiter fast lane — persistent on the menu AND in every realm.
- * Résumé (PDF) · realms · GitHub · LinkedIn · Contact · Classic view.
+ * The single top bar — brand, realm nav, day/night + sound, and the
+ * recruiter links. Persists across the entry and the world (no second bar).
  */
-export function FastLane({ content }: { content: Content }) {
+export function TopBar({ content }: { content: Content }) {
   const phase = useWorld((s) => s.phase);
   const goToRealm = useWorld((s) => s.goToRealm);
   const enterWorld = useWorld((s) => s.enterWorld);
-  const github = content.basics.profiles.find((p) => p.network === "GitHub");
-  const linkedin = content.basics.profiles.find(
-    (p) => p.network === "LinkedIn"
-  );
-
-  const jump = (realm: RealmId) => {
-    audio.click();
-    if (phase === "menu") enterWorld(realm);
-    else goToRealm(realm);
-  };
-
-  return (
-    <nav className="fastlane" aria-label="Quick links">
-      <span className="fastlane-name">{content.basics.name.toUpperCase()}</span>
-      <div className="fastlane-links">
-        <a className="fastlane-cta" href="/resume.pdf" download>
-          ⬇ Résumé
-        </a>
-        <button onClick={() => jump("projects")}>Projects</button>
-        <button onClick={() => jump("experience")}>Experience</button>
-        <button onClick={() => jump("achievements")}>Achievements</button>
-        {github && (
-          <a href={github.url} target="_blank" rel="noopener">
-            GitHub
-          </a>
-        )}
-        {linkedin && (
-          <a href={linkedin.url} target="_blank" rel="noopener">
-            LinkedIn
-          </a>
-        )}
-        <a href={`mailto:${content.basics.email}`}>Contact</a>
-        <a href="/classic" className="fastlane-classic">
-          Classic view
-        </a>
-      </div>
-    </nav>
-  );
-}
-
-function RealmNav() {
-  const goToRealm = useWorld((s) => s.goToRealm);
   const setWorldActive = useWorld((s) => s.setWorldActive);
   const muted = useWorld((s) => s.muted);
   const toggleMuted = useWorld((s) => s.toggleMuted);
@@ -106,72 +70,118 @@ function RealmNav() {
   const stopIndex = useWorld((s) => s.stopIndex);
   const currentRealm = stops[stopIndex]?.realm ?? "hub";
 
+  const github = content.basics.profiles.find((p) => p.network === "GitHub");
+  const linkedin = content.basics.profiles.find((p) => p.network === "LinkedIn");
   const realms: RealmId[] = ["hub", "projects", "experience", "achievements", "about"];
+  const inWorld = phase !== "gate";
+
+  const jump = (r: RealmId) => {
+    audio.click();
+    if (phase === "gate") enterWorld(r);
+    else goToRealm(r);
+  };
 
   return (
-    <nav className="hud-nav" aria-label="Realms">
-      {realms.map((r) => {
-        const built = (BUILT_REALMS as readonly string[]).includes(r);
-        return (
-          <button
-            key={r}
-            className={`hud-pill ${currentRealm === r ? "is-active" : ""} ${built ? "" : "is-soon"}`}
-            disabled={!built}
-            onMouseEnter={() => audio.hover()}
-            onClick={() => {
-              audio.click();
-              goToRealm(r);
-            }}
-          >
-            {REALM_LABELS[r]}
-            {!built && <span className="hud-soon">soon</span>}
-          </button>
-        );
-      })}
-      <button
-        className="hud-pill hud-pill-icon"
-        onClick={toggleNight}
-        aria-label={night ? "Switch to golden hour" : "Switch to night"}
-        title={night ? "Golden hour" : "Night"}
-      >
-        {night ? "☀️" : "🌙"}
-      </button>
-      <button
-        className="hud-pill hud-pill-icon"
-        onClick={toggleMuted}
-        aria-label={muted ? "Unmute sound" : "Mute sound"}
-        title={muted ? "Unmute" : "Mute"}
-      >
-        {muted ? "🔇" : "🔊"}
-      </button>
-      <button
-        className="hud-pill hud-pill-text"
-        onClick={() => setWorldActive(false)}
-        title="Read everything as plain text"
-      >
-        📄 Text
-      </button>
-    </nav>
+    <header className="topbar">
+      <span className="topbar-brand">{content.basics.name}</span>
+
+      {inWorld && (
+        <nav className="topbar-realms" aria-label="Sections">
+          {realms.map((r) => {
+            const built = (BUILT_REALMS as readonly string[]).includes(r);
+            return (
+              <button
+                key={r}
+                className={`topbar-realm ${currentRealm === r ? "is-active" : ""}`}
+                disabled={!built}
+                onMouseEnter={() => audio.hover()}
+                onClick={() => jump(r)}
+              >
+                {REALM_LABELS[r]}
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
+      <div className="topbar-right">
+        {inWorld && (
+          <>
+            <button
+              className="topbar-icon"
+              onClick={toggleNight}
+              title={night ? "Golden hour" : "Night"}
+              aria-label={night ? "Switch to golden hour" : "Switch to night"}
+            >
+              {night ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+            <button
+              className="topbar-icon"
+              onClick={toggleMuted}
+              title={muted ? "Unmute" : "Mute"}
+              aria-label={muted ? "Unmute sound" : "Mute sound"}
+            >
+              {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+            </button>
+            <span className="topbar-sep" />
+          </>
+        )}
+        {github && (
+          <a className="topbar-ghost" href={github.url} target="_blank" rel="noopener">
+            GitHub
+          </a>
+        )}
+        {linkedin && (
+          <a className="topbar-ghost" href={linkedin.url} target="_blank" rel="noopener">
+            LinkedIn
+          </a>
+        )}
+        <a className="topbar-icon" href={`mailto:${content.basics.email}`} title="Email">
+          <Mail size={17} />
+        </a>
+        <a className="topbar-link" href="/classic" onClick={() => phase !== "gate" && setWorldActive(false)}>
+          <FileText size={15} /> Résumé
+        </a>
+        <a className="topbar-cta" href="/resume.pdf" download>
+          <Download size={15} /> PDF
+        </a>
+      </div>
+    </header>
   );
 }
 
-/** sleek edge navigation: chevrons on the screen edges, a corner tour
- *  chip, and scroll-wheel stepping between stops */
-function TourDock() {
-  const touring = useWorld((s) => s.touring);
-  const targetIndex = useWorld((s) => s.targetIndex);
+/** scroll-to-move hint — fades once the visitor starts scrolling */
+function ScrollHint() {
   const stopIndex = useWorld((s) => s.stopIndex);
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (stopIndex > 0) setGone(true);
+  }, [stopIndex]);
+  if (gone) return null;
+  return (
+    <div className="scroll-hint" aria-hidden>
+      <MousePointer2 size={16} />
+      <span>scroll to explore</span>
+      <ChevronRight size={16} className="scroll-hint-arrow" />
+    </div>
+  );
+}
+
+/** edge chevrons + scroll-wheel stepping (no auto-tour) */
+function EdgeNav() {
+  const stopIndex = useWorld((s) => s.stopIndex);
+  const targetIndex = useWorld((s) => s.targetIndex);
   const stops = useWorld((s) => s.stops);
-  const { next, prev, startTour, pauseTour } = useWorld.getState();
+  const { next, prev } = useWorld.getState();
   const flying = targetIndex !== null;
   const wheelLock = useRef(0);
 
-  // scroll-wheel steps the tour (debounced; card scrolling untouched)
+  // scrolling anywhere (except over the card) steps through the stops
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
       if ((e.target as HTMLElement | null)?.closest(".hud-card")) return;
       const now = performance.now();
-      if (now - wheelLock.current < 900 || Math.abs(e.deltaY) < 12) return;
+      if (now - wheelLock.current < 750 || Math.abs(e.deltaY) < 10) return;
       wheelLock.current = now;
       const st = useWorld.getState();
       if (e.deltaY > 0) st.next();
@@ -190,9 +200,9 @@ function TourDock() {
           prev();
         }}
         disabled={stopIndex === 0 && !flying}
-        aria-label="Previous stop"
+        aria-label="Previous"
       >
-        ‹
+        <ChevronLeft size={22} />
       </button>
       <button
         className="edge-nav edge-nav-right"
@@ -201,25 +211,12 @@ function TourDock() {
           next();
         }}
         disabled={stopIndex >= stops.length - 1 && !flying}
-        aria-label="Next stop"
+        aria-label="Next"
       >
-        ›
+        <ChevronRight size={22} />
       </button>
-      <div className="tour-chip">
-        <button
-          onMouseEnter={() => audio.hover()}
-          onClick={() => {
-            audio.click();
-            if (touring) pauseTour();
-            else startTour();
-          }}
-          aria-label={touring ? "Pause tour" : "Start tour"}
-        >
-          {touring ? "❚❚" : "▶"}
-        </button>
-        <span>
-          {Math.min((targetIndex ?? stopIndex) + 1, stops.length)}/{stops.length}
-        </span>
+      <div className="stop-progress">
+        {Math.min((targetIndex ?? stopIndex) + 1, stops.length)} / {stops.length}
       </div>
     </>
   );
@@ -232,18 +229,15 @@ interface CardData {
   summary?: string;
   items: string[];
   links?: { label: string; url: string }[];
-  /** project slug → screenshot slot */
-  screenshot?: string;
 }
 
-/** builds card content for a stop's showcase slug — project or #special */
 function buildCard(slug: string, content: Content): CardData | null {
   switch (slug) {
     case "#work": {
       const w = content.work[0];
       if (!w) return null;
       return {
-        kicker: "✦ experience",
+        kicker: "experience",
         title: `${w.position} · ${w.name}`,
         tags: `${w.dates}${w.location ? ` · ${w.location}` : ""}`,
         items: w.highlights,
@@ -251,36 +245,32 @@ function buildCard(slug: string, content: Content): CardData | null {
     }
     case "#education":
       return {
-        kicker: "✦ education",
+        kicker: "education",
         title: "Education",
         items: content.education.map(
-          (e) =>
-            `${e.institution} — ${e.degree} (${e.dates}${e.score ? `, ${e.score}` : ""})`
+          (e) => `${e.institution} — ${e.degree} (${e.dates}${e.score ? `, ${e.score}` : ""})`
         ),
       };
     case "#volunteer":
       return {
-        kicker: "✦ beyond the classroom",
-        title: "Extra Curricular",
+        kicker: "beyond the classroom",
+        title: "Extra-curricular",
         items: content.volunteer.map((v) => `${v.role} — ${v.summary}`),
       };
     case "#awards":
       return {
-        kicker: "✦ the monument hall",
+        kicker: "achievements",
         title: "Achievements",
         items: content.awards.map((a) => `${a.title} — ${a.summary}`),
       };
     case "#contact": {
       const links = [
         { label: "Email", url: `mailto:${content.basics.email}` },
-        ...content.basics.profiles.map((p) => ({
-          label: p.network,
-          url: p.url,
-        })),
+        ...content.basics.profiles.map((p) => ({ label: p.network, url: p.url })),
         { label: "Résumé PDF", url: "/resume.pdf" },
       ];
       return {
-        kicker: "✦ say hi",
+        kicker: "say hi",
         title: content.basics.name,
         tags: content.basics.location,
         summary: content.basics.summary,
@@ -292,13 +282,12 @@ function buildCard(slug: string, content: Content): CardData | null {
       const project = content.projects.find((p) => p.slug === slug);
       if (!project) return null;
       return {
-        kicker: "✦ project showcase",
+        kicker: "project",
         title: project.name,
         tags: project.stack,
         summary: project.oneLiner,
         items: project.highlights,
         links: project.links,
-        screenshot: project.screenshot,
       };
     }
   }
@@ -325,13 +314,12 @@ function ShowcaseCard({ content }: { content: Content }) {
 
   return (
     <aside className={`hud-card ${visible ? "is-open" : ""}`} aria-hidden={!visible}>
-      <button className="hud-card-close" onClick={dismiss} aria-label="Close showcase">
-        ✕
+      <button className="hud-card-close" onClick={dismiss} aria-label="Close">
+        <X size={18} />
       </button>
       <p className="hud-card-kicker">{card.kicker}</p>
       <h2 className="hud-card-title">{card.title}</h2>
       {card.tags && <p className="hud-card-tags">{card.tags}</p>}
-      {card.screenshot && <Screenshot src={card.screenshot} title={card.title} />}
       {card.summary && <p className="hud-card-summary">{card.summary}</p>}
       {card.items.length > 0 && (
         <ul className="hud-card-list">
@@ -344,32 +332,11 @@ function ShowcaseCard({ content }: { content: Content }) {
         <div className="hud-card-links">
           {card.links.map((l) => (
             <a key={l.url} href={l.url} target="_blank" rel="noopener">
-              {l.label} ↗
+              {l.label} <ArrowUpRight size={13} />
             </a>
           ))}
         </div>
       )}
     </aside>
-  );
-}
-
-/** real screenshot if present, stylized placeholder if not (never stalls) */
-function Screenshot({ src, title }: { src: string; title: string }) {
-  const [missing, setMissing] = useState(false);
-  if (missing)
-    return (
-      <div className="hud-shot hud-shot-placeholder" aria-hidden>
-        <span>▦</span>
-        <small>{title.split("–")[0].split("—")[0].trim()}</small>
-      </div>
-    );
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      className="hud-shot"
-      src={src}
-      alt={`${title} screenshot`}
-      onError={() => setMissing(true)}
-    />
   );
 }

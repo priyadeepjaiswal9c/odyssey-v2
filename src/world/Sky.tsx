@@ -47,11 +47,12 @@ void main() {
   float h = d.y;
 
   // day palette, night palette, mixed
-  vec3 zen = mix(uZenith, vec3(0.012, 0.028, 0.072), uNight);
-  vec3 hi = mix(uHigh, vec3(0.028, 0.05, 0.11), uNight);
-  vec3 hor = mix(uHorizon, vec3(0.05, 0.07, 0.15), uNight);
-  vec3 glo = mix(uGlowBand, vec3(0.07, 0.1, 0.2), uNight);
-  vec3 bel = mix(uBelow, vec3(0.008, 0.014, 0.035), uNight);
+  // simple dark-blue night (blue-dominant so the warm grade can't purple it)
+  vec3 zen = mix(uZenith, vec3(0.02, 0.05, 0.14), uNight);
+  vec3 hi = mix(uHigh, vec3(0.03, 0.07, 0.18), uNight);
+  vec3 hor = mix(uHorizon, vec3(0.04, 0.09, 0.22), uNight);
+  vec3 glo = mix(uGlowBand, vec3(0.05, 0.1, 0.24), uNight);
+  vec3 bel = mix(uBelow, vec3(0.01, 0.02, 0.05), uNight);
 
   // atmospheric gradient: amber horizon → dusty blue zenith
   vec3 col = mix(hor, hi, smoothstep(0.0, 0.34, h));
@@ -72,11 +73,12 @@ void main() {
   col += glo * pow(sunDot, 10.0) * 0.22;
 
   // stars: everywhere at night, twinkling
-  float starField = smoothstep(-0.02, 0.28, h) * uNight;
-  vec2 grid = floor(d.xz / max(0.08, abs(d.y)) * 34.0);
-  float star = step(0.984, hash21(grid));
-  float tw = 0.5 + 0.5 * sin(uTime * 1.8 + hash21(grid + 7.0) * 40.0);
-  col += vec3(0.9, 0.93, 1.0) * star * starField * tw * 1.15;
+  // subtle round stars overhead only — no horizon streaks (no divide by d.y)
+  float starField = smoothstep(0.14, 0.42, h) * uNight;
+  vec2 sc = floor(d.xz * 60.0);
+  float star = step(0.9955, hash21(sc));
+  float tw = 0.6 + 0.4 * sin(uTime * 2.0 + hash21(sc + 7.0) * 40.0);
+  col += vec3(0.85, 0.9, 1.0) * star * starField * tw * 0.9;
 
   // dither to kill banding
   col += (hash21(gl_FragCoord.xy) - 0.5) * 0.012;

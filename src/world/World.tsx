@@ -49,7 +49,7 @@ export default function World({ content }: { content: Content }) {
     <>
       <Canvas
         dpr={[1, 1.5]}
-        frameloop="demand"
+        frameloop="always"
         camera={{ position: [52, 30, 60], fov: 45, near: 0.1, far: 900 }}
         shadows={quality !== "low"}
         gl={{
