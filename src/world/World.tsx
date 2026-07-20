@@ -412,6 +412,8 @@ function RealmFireflies({ quality }: { quality: string }) {
 function SunLight({ shadows }: { shadows: boolean }) {
   const ref = useRef<THREE.DirectionalLight>(null);
   const targetRef = useRef<THREE.Object3D>(null);
+  const sunWarm = useRef(new THREE.Color("#ffc182"));
+  const moonCool = useRef(new THREE.Color("#9fb6e0"));
 
   useFrame((_, dt) => {
     const light = ref.current;
@@ -420,10 +422,12 @@ function SunLight({ shadows }: { shadows: boolean }) {
     target.position.copy(rig.target);
     light.position.copy(rig.target).addScaledVector(SUN_DIR, 140);
     light.target = target;
-    // the sun rests at night
+    // the sun rests + cools to moonlight at night
+    const isNight = useWorld.getState().night;
     light.intensity = THREE.MathUtils.damp(
-      light.intensity, useWorld.getState().night ? 0.3 : 2.4, 1.6, dt
+      light.intensity, isNight ? 0.55 : 2.4, 1.6, dt
     );
+    light.color.lerp(isNight ? moonCool.current : sunWarm.current, 1 - Math.exp(-1.6 * dt));
   });
 
   return (

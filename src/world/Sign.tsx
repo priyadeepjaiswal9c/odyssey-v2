@@ -28,11 +28,18 @@ export function Sign({
   postHeight?: number;
   color?: string;
 }) {
-  const width = Math.max(text.length, sub ? sub.length * 0.62 : 0) * size * 0.62 + size;
-  const height = sub ? size * 2.6 : size * 1.8;
+  // clamp a readable minimum — many call sites shrink labels to ~0.5
+  const s = Math.max(size, 0.9);
+  const width = Math.max(text.length, sub ? sub.length * 0.62 : 0) * s * 0.62 + s;
+  const height = sub ? s * 2.6 : s * 1.8;
 
   return (
     <group position={position} rotation={rotation}>
+      {/* always-on dark backing so text stays legible even without a plank */}
+      <mesh position={[0, 0, -0.01]}>
+        <planeGeometry args={[width * 0.94, height * 0.8]} />
+        <meshBasicMaterial color="#1c140c" transparent opacity={0.6} />
+      </mesh>
       {plank && (
         <>
           <mesh position={[0, 0, -0.18]} castShadow>
@@ -63,30 +70,30 @@ export function Sign({
         </>
       )}
       <Text
-        font="/fonts/Monocraft.ttf"
-        fontSize={size}
+        font="/fonts/SpaceGrotesk.ttf"
+        fontSize={s}
         color={color}
         anchorX="center"
         anchorY={sub ? "bottom" : "middle"}
         position={[0, sub ? 0.12 : 0, 0.02]}
-        outlineWidth={size * 0.06}
+        outlineWidth={s * 0.09}
         outlineColor="#241c12"
-        maxWidth={width - size * 0.6}
+        maxWidth={width - s * 0.6}
         textAlign="center"
       >
         {text}
       </Text>
       {sub && (
         <Text
-          font="/fonts/Monocraft.ttf"
-          fontSize={size * 0.52}
-          color="#ffb84d"
+          font="/fonts/SpaceGrotesk.ttf"
+          fontSize={s * 0.52}
+          color="#ffcf87"
           anchorX="center"
           anchorY="top"
           position={[0, -0.08, 0.02]}
-          outlineWidth={size * 0.03}
+          outlineWidth={s * 0.05}
           outlineColor="#241c12"
-          maxWidth={width - size * 0.6}
+          maxWidth={width - s * 0.6}
           textAlign="center"
         >
           {sub}

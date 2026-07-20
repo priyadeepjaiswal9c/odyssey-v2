@@ -1,18 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
-import { Nunito } from "next/font/google";
+import { Nunito, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
-// Monocraft (OFL 1.1) — menu, signs, HUD, headings. Body stays readable sans.
-const monocraft = localFont({
-  src: [
-    { path: "../../public/fonts/Monocraft.ttf", weight: "400" },
-    { path: "../../public/fonts/Monocraft-Bold.ttf", weight: "700" },
-  ],
+// Space Grotesk — clean modern display for menu, signs, HUD, headings.
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "700"],
   variable: "--font-display",
   display: "swap",
-  preload: true,
 });
 
 const nunito = Nunito({
@@ -67,7 +63,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${nunito.variable} ${monocraft.variable}`}>
+    <html lang="en" className={`${nunito.variable} ${spaceGrotesk.variable}`}>
       <body>
         {process.env.NODE_ENV !== "production" && (
           // dev-only: capture every error from t=0 for headless verification
