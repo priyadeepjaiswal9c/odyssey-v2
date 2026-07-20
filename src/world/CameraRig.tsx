@@ -128,32 +128,34 @@ export function CameraRig() {
       rig.target.set(hub[0], hub[1] + 5, hub[2]);
     }
 
-    // soft pointer parallax (damped)
+    // pointer parallax — only when parked (never nudges an in-flight path)
+    const parked = !rig.flying && useWorld.getState().phase === "world";
     parallax.current.x = THREE.MathUtils.damp(
-      parallax.current.x, state.pointer.x, 2.2, dt
+      parallax.current.x, parked ? state.pointer.x : 0, 2.2, dt
     );
     parallax.current.y = THREE.MathUtils.damp(
-      parallax.current.y, state.pointer.y, 2.2, dt
+      parallax.current.y, parked ? state.pointer.y : 0, 2.2, dt
     );
 
     const t = state.clock.elapsedTime;
-    const idle = rig.flying ? 0.25 : 1;
-    const dx = Math.sin(t * 0.14) * 0.9 * idle + parallax.current.x * 1.6;
-    const dy = Math.sin(t * 0.1) * 0.5 * idle + parallax.current.y * 0.9;
-    const dz = Math.cos(t * 0.12) * 0.7 * idle;
+    // slow idle breathing only when parked; flights stay perfectly steady
+    const idle = rig.flying ? 0 : 1;
+    const dx = Math.sin(t * 0.12) * 0.35 * idle + parallax.current.x * 0.8;
+    const dy = Math.sin(t * 0.09) * 0.22 * idle + parallax.current.y * 0.5;
+    const dz = Math.cos(t * 0.1) * 0.28 * idle;
 
     camera.position.set(rig.pos.x + dx, rig.pos.y + dy, rig.pos.z + dz);
     tmp.look.set(
-      rig.target.x + parallax.current.x * 0.8,
-      rig.target.y + parallax.current.y * 0.5,
+      rig.target.x + parallax.current.x * 0.4,
+      rig.target.y + parallax.current.y * 0.25,
       rig.target.z
     );
     camera.lookAt(tmp.look);
 
-    // cinematic breathing: FOV widens slightly in flight
+    // subtle FOV breathing in flight
     const persp = camera as THREE.PerspectiveCamera;
     if (persp.isPerspectiveCamera) {
-      const wantFov = rig.flying ? 51 : 45;
+      const wantFov = rig.flying ? 48 : 45;
       const next = THREE.MathUtils.damp(persp.fov, wantFov, 2, dt);
       if (Math.abs(next - persp.fov) > 0.01) {
         persp.fov = next;

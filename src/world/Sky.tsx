@@ -47,11 +47,11 @@ void main() {
   float h = d.y;
 
   // day palette, night palette, mixed
-  vec3 zen = mix(uZenith, vec3(0.045, 0.075, 0.125), uNight);
-  vec3 hi = mix(uHigh, vec3(0.08, 0.12, 0.18), uNight);
-  vec3 hor = mix(uHorizon, vec3(0.16, 0.15, 0.2), uNight);
-  vec3 glo = mix(uGlowBand, vec3(0.2, 0.18, 0.24), uNight);
-  vec3 bel = mix(uBelow, vec3(0.03, 0.035, 0.06), uNight);
+  vec3 zen = mix(uZenith, vec3(0.012, 0.028, 0.072), uNight);
+  vec3 hi = mix(uHigh, vec3(0.028, 0.05, 0.11), uNight);
+  vec3 hor = mix(uHorizon, vec3(0.05, 0.07, 0.15), uNight);
+  vec3 glo = mix(uGlowBand, vec3(0.07, 0.1, 0.2), uNight);
+  vec3 bel = mix(uBelow, vec3(0.008, 0.014, 0.035), uNight);
 
   // atmospheric gradient: amber horizon → dusty blue zenith
   vec3 col = mix(hor, hi, smoothstep(0.0, 0.34, h));
@@ -72,11 +72,11 @@ void main() {
   col += glo * pow(sunDot, 10.0) * 0.22;
 
   // stars: everywhere at night, twinkling
-  float starField = smoothstep(0.05, 0.4, h) * uNight;
-  vec2 grid = floor(d.xz / max(0.1, abs(d.y)) * 26.0);
-  float star = step(0.991, hash21(grid));
-  float tw = 0.55 + 0.45 * sin(uTime * 1.8 + hash21(grid + 7.0) * 40.0);
-  col += vec3(0.9, 0.92, 1.0) * star * starField * tw * 0.65;
+  float starField = smoothstep(-0.02, 0.28, h) * uNight;
+  vec2 grid = floor(d.xz / max(0.08, abs(d.y)) * 34.0);
+  float star = step(0.984, hash21(grid));
+  float tw = 0.5 + 0.5 * sin(uTime * 1.8 + hash21(grid + 7.0) * 40.0);
+  col += vec3(0.9, 0.93, 1.0) * star * starField * tw * 1.15;
 
   // dither to kill banding
   col += (hash21(gl_FragCoord.xy) - 0.5) * 0.012;
@@ -137,7 +137,7 @@ export const SunDisc = forwardRef<THREE.Mesh>(function SunDisc(_, ref) {
   const pos = useMemo(() => SUN_DIR.clone().multiplyScalar(460), []);
   const mat = useRef<THREE.MeshBasicMaterial>(null);
   const day = useMemo(() => new THREE.Color(SKY.sun), []);
-  const night = useMemo(() => new THREE.Color("#3a4256"), []);
+  const night = useMemo(() => new THREE.Color("#d2dcf0"), []); // pale moon
 
   useFrame((_, dt) => {
     if (!mat.current) return;

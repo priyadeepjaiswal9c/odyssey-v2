@@ -56,7 +56,36 @@ export function buildExperienceIsland(): VoxelModel {
   path(m, 40, 40, 40, 52); // to stage
   path(m, 40, 40, 57, 45); // to cottage
 
+  // striped market awnings — each experience reads as a signed shop-stall
+  shopAwning(m, 26, 34, 32, Y + 6, B.bannerCrimson, B.paper); // Windflow
+  shopAwning(m, 49, 57, 31, Y + 5, B.bookBlue, B.paper); // IIT Patna
+  shopAwning(m, 36, 46, 59, Y + 7, B.goldMetal, B.bannerCrimson); // Yavanika
+
   return m;
+}
+
+/** a striped market awning + stall posts over a shopfront */
+function shopAwning(
+  m: VoxelModel,
+  x0: number,
+  x1: number,
+  z: number,
+  y: number,
+  cA: number,
+  cB: number
+): void {
+  for (let x = x0; x <= x1; x++) {
+    const c = x % 2 === 0 ? cA : cB;
+    m.set(x, y, z + 1, c);
+    m.set(x, y - 1, z + 2, c); // slopes out over the front
+    m.set(x, y - 2, z + 2, c); // valance fringe
+  }
+  // support posts + a crate and a lantern at the stall
+  m.fill(x0, Y + 1, z + 2, x0, y - 1, z + 2, B.wood);
+  m.fill(x1, Y + 1, z + 2, x1, y - 1, z + 2, B.wood);
+  m.set(x0 + 1, Y + 1, z + 2, B.woodLight);
+  m.set(x0 + 2, Y + 1, z + 2, B.woodLight);
+  m.set(x1 - 1, Y + 2, z + 2, B.warmLight);
 }
 
 // — village square: a well + notice board —
