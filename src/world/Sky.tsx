@@ -57,14 +57,17 @@ void main() {
   // atmospheric gradient: amber horizon → dusty blue zenith
   vec3 col = mix(hor, hi, smoothstep(0.0, 0.34, h));
   col = mix(col, zen, smoothstep(0.3, 0.8, h));
-  col = mix(col, bel, smoothstep(-0.02, -0.42, h));
+  // long, warm below-horizon falloff — haze, never a black void
+  col = mix(col, bel, smoothstep(-0.04, -0.72, h));
 
   float sunDot = max(dot(d, uSunDir), 0.0);
 
-  // horizon scattering band, strongest toward the sun azimuth
-  float band = exp(-abs(h - 0.03) * 10.0);
-  float towardSun = 0.35 + 0.65 * pow(max(dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSunDir.x, 0.0, uSunDir.z))), 0.0), 2.0);
-  col += glo * band * 0.5 * towardSun;
+  // horizon scattering band, strongest toward the sun azimuth — soft
+  float band = exp(-abs(h - 0.03) * 7.0);
+  float towardSun = 0.4 + 0.6 * pow(max(dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSunDir.x, 0.0, uSunDir.z))), 0.0), 2.0);
+  col += glo * band * 0.34 * towardSun;
+  // gentle ambient haze hugging the horizon all around
+  col += glo * exp(-abs(h) * 5.0) * 0.1;
 
   // the sun (fades at night to a pale moon-glow)
   float sunAmp = 1.0 - uNight * 0.88;
@@ -186,21 +189,21 @@ export function Clouds({ count = 26, seed = 77 }: { count?: number; seed?: numbe
     speeds.forEach((c, i) => {
       const x = ((c.x + t * c.v + 300) % 600) - 300;
       dummy.position.set(x, c.y + Math.sin(t * 0.1 + i) * 0.8, c.z);
-      dummy.scale.set(c.sx, 2.4, c.sz);
+      dummy.scale.set(c.sx, 1.5, c.sz);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
     // clouds thin out at night
     const mat = mesh.material as THREE.MeshBasicMaterial;
-    const want = useWorld.getState().night ? 0.14 : 0.42;
+    const want = useWorld.getState().night ? 0.1 : 0.22;
     mat.opacity = THREE.MathUtils.damp(mat.opacity, want, 1.6, dt);
   });
 
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, count]} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshBasicMaterial color="#f2cfa6" transparent opacity={0.42} depthWrite={false} />
+      <meshBasicMaterial color="#eec9a2" transparent opacity={0.22} depthWrite={false} />
     </instancedMesh>
   );
 }

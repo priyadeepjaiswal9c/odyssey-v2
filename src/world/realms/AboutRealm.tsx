@@ -31,7 +31,7 @@ export default function AboutRealm(_props: { content: Content }) {
         <Sign
           text="HOME"
           sub="About · Contact"
-          position={[0, ABOUT_TOP + 14, 6]}
+          position={[0, ABOUT_TOP + 18, 6]}
           size={1.4}
         />
       </group>

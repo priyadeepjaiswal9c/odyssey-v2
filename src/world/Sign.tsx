@@ -48,18 +48,18 @@ export function Sign({
           </mesh>
         </>
       )}
-      {/* the board faces the camera AND draws on top of world geometry, so
-          labels are never backwards, never occluded, and never clipped */}
+      {/* the board faces the camera; it floats in open sky above its island,
+          so normal depth + fog apply — distant signs melt into the haze */}
       <Billboard follow>
         {/* thin wood frame */}
-        <mesh position={[0, 0, -0.04]} renderOrder={20}>
+        <mesh position={[0, 0, -0.04]}>
           <planeGeometry args={[width + 0.5, height + 0.5]} />
-          <meshBasicMaterial color="#5a3f28" transparent depthTest={false} depthWrite={false} />
+          <meshBasicMaterial color="#5a3f28" />
         </mesh>
         {/* dark board */}
-        <mesh position={[0, 0, -0.02]} renderOrder={21}>
+        <mesh position={[0, 0, -0.02]}>
           <planeGeometry args={[width, height]} />
-          <meshBasicMaterial color="#211812" transparent opacity={0.94} depthTest={false} depthWrite={false} />
+          <meshBasicMaterial color="#211812" transparent opacity={0.94} depthWrite={false} />
         </mesh>
         <Text
           font="/fonts/SpaceGrotesk.ttf"
@@ -71,10 +71,6 @@ export function Sign({
           outlineWidth={s * 0.06}
           outlineColor="#211812"
           textAlign="center"
-          renderOrder={22}
-          material-depthTest={false}
-          material-depthWrite={false}
-          material-toneMapped={false}
         >
           {text}
         </Text>
@@ -89,10 +85,6 @@ export function Sign({
             outlineWidth={s * 0.04}
             outlineColor="#211812"
             textAlign="center"
-            renderOrder={22}
-            material-depthTest={false}
-            material-depthWrite={false}
-            material-toneMapped={false}
           >
             {sub}
           </Text>

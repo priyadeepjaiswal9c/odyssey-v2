@@ -13,10 +13,10 @@ export const SUN_DIR = new THREE.Vector3(0.82, 0.34, 0.2).normalize();
 export const SKY = {
   zenith: "#2e4a68",
   high: "#6d87a0",
-  horizon: "#ffb060",
-  glowBand: "#ff8c38",
+  horizon: "#ffb878",
+  glowBand: "#f5954e",
   sun: "#fff2d8",
-  below: "#241c14",
+  below: "#4a3524",
   fog: "#e0ae80",
 } as const;
 
@@ -41,6 +41,9 @@ export const PROJECT_ISLAND_OFFSETS: Record<string, [number, number, number]> = 
   tark: [-52, 9, -34],
   campuscab: [46, -7, -30],
 };
+
+/** the extra-curricular island floats apart from the work island */
+export const EXP_EXTRA_OFFSET: [number, number, number] = [-104, 10, 36];
 
 export function realmVec(id: RealmId): THREE.Vector3 {
   return new THREE.Vector3(...REALMS[id].pos);

@@ -80,12 +80,15 @@ function buildControlTower(m: VoxelModel, tx: number, tz: number): void {
   // cantilevered operations deck (wider than the shaft)
   const dy = Y + 14;
   m.fill(tx - 4, dy, tz - 4, tx + 4, dy, tz + 4, B.steelDark); // deck floor
-  // glass ring with steel corner mullions
+  // glass ring with steel corner mullions — plain glass so bloom doesn't
+  // blow the deck into a white oval; two warm lit panes carry the life
   for (let y = dy + 1; y <= dy + 2; y++) {
-    m.walls(tx - 4, y, tz - 4, tx + 4, y, tz + 4, B.glassLit);
+    m.walls(tx - 4, y, tz - 4, tx + 4, y, tz + 4, B.glass);
     for (const [cx, cz] of [[-4, -4], [4, -4], [-4, 4], [4, 4]] as const)
       m.set(tx + cx, y, tz + cz, B.steel);
   }
+  m.set(tx, dy + 1, tz + 4, B.glassLit);
+  m.set(tx - 2, dy + 1, tz + 4, B.glassLit);
   m.fill(tx - 4, dy + 3, tz - 4, tx + 4, dy + 3, tz + 4, B.concreteDark); // roof
   m.fill(tx - 3, dy + 4, tz - 3, tx + 3, dy + 4, tz + 3, B.concrete);
 

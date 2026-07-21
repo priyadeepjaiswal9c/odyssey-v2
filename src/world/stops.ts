@@ -1,5 +1,5 @@
 import type { Content } from "@/content/types";
-import { REALMS, PROJECT_ISLAND_OFFSETS } from "./layout";
+import { REALMS, PROJECT_ISLAND_OFFSETS, EXP_EXTRA_OFFSET } from "./layout";
 import { BUILT_REALMS, BUILT_ISLANDS } from "./registry";
 import type { TourStop } from "./store";
 
@@ -36,10 +36,15 @@ export function buildStops(content: Content): TourStop[] {
       projRealm[1] + offset[1],
       projRealm[2] + offset[2],
     ];
+    // Campus Cab sits east of its siblings — shoot it from the south-west
+    // so the other two islands stay out of frame; the rest from the south-east
+    const cab = proj.slug === "campuscab";
     stops.push({
       id: `${proj.slug}-showcase`,
       realm: "projects",
-      cam: [p[0] + 48, p[1] + 30, p[2] + 56],
+      cam: cab
+        ? [p[0] + 4, p[1] + 26, p[2] + 72]
+        : [p[0] + 48, p[1] + 30, p[2] + 56],
       target: [p[0], p[1] + 6, p[2]],
       showcase: proj.slug,
       holdMs: 6000,
@@ -48,6 +53,11 @@ export function buildStops(content: Content): TourStop[] {
 
   // — Experience: one frame for the work, one for the extra-curriculars —
   const e = REALMS.experience.pos;
+  const ex: [number, number, number] = [
+    e[0] + EXP_EXTRA_OFFSET[0],
+    e[1] + EXP_EXTRA_OFFSET[1],
+    e[2] + EXP_EXTRA_OFFSET[2],
+  ];
   stops.push(
     {
       id: "exp-work",
@@ -60,8 +70,8 @@ export function buildStops(content: Content): TourStop[] {
     {
       id: "exp-extra",
       realm: "experience",
-      cam: [e[0] - 46, e[1] + 30, e[2] + 52],
-      target: [e[0], e[1] + 6, e[2]],
+      cam: [ex[0] + 34, ex[1] + 22, ex[2] + 52],
+      target: [ex[0], ex[1] + 6, ex[2]],
       showcase: "#volunteer",
       holdMs: 6000,
     }

@@ -26,26 +26,26 @@ export const EXP_POI = {
   helper: [55, Y + 1, 53] as [number, number, number],
 };
 
+/** the work island — Windflow forge + IIT Patna study, breathing room */
 export function buildExperienceIsland(): VoxelModel {
   const m = new VoxelModel(SIZE, 64, SIZE);
 
-  island(m, 40, 40, { topY: Y, rx: 28, rz: 24, seed: 2020, depth: 24 });
+  island(m, 40, 40, { topY: Y, rx: 26, rz: 22, seed: 2020, depth: 24 });
 
   buildSquare(m);
   buildForge(m);
   buildLibrary(m);
-  buildStage(m);
 
   // village flavor
-  cottage(m, 58, 44, B.roofRed);
+  cottage(m, 56, 48, B.roofRed);
   tree(m, 18, Y + 1, 44, 81, "m");
   tree(m, 62, Y + 1, 24, 82, "s");
-  tree(m, 24, Y + 1, 56, 83, "s");
+  tree(m, 24, Y + 1, 54, 83, "s");
   lampPost(m, 40, Y + 1, 32);
   lampPost(m, 30, Y + 1, 46);
   lampPost(m, 50, Y + 1, 46);
   flowers(
-    m, 14, 16, 66, 62,
+    m, 14, 16, 66, 60,
     (x, z) => (m.get(x, Y, z) === B.grass ? Y + 1 : -1),
     91, 0.025
   );
@@ -53,13 +53,43 @@ export function buildExperienceIsland(): VoxelModel {
   // paths radiating from the square
   path(m, 40, 40, 31, 33); // to forge
   path(m, 40, 40, 52, 34); // to library
-  path(m, 40, 40, 40, 52); // to stage
-  path(m, 40, 40, 57, 45); // to cottage
+  path(m, 40, 40, 55, 47); // to cottage
 
-  // striped market awnings — each experience reads as a signed shop-stall
+  // striped market awnings — each chapter reads as a signed shop-stall
   shopAwning(m, 26, 34, 32, Y + 6, B.bannerCrimson, B.paper); // Windflow
   shopAwning(m, 49, 57, 31, Y + 5, B.bookBlue, B.paper); // IIT Patna
-  shopAwning(m, 36, 46, 59, Y + 7, B.goldMetal, B.bannerCrimson); // Yavanika
+
+  return m;
+}
+
+/**
+ * The extra-curricular island — its own small world: TEDx speaking stage,
+ * the Yavanika theatre, and the NSS service post around a green.
+ */
+export function buildExtraIsland(): VoxelModel {
+  const m = new VoxelModel(SIZE, 64, SIZE);
+
+  island(m, 40, 40, { topY: Y, rx: 24, rz: 20, seed: 2121, depth: 22 });
+
+  // fanned toward the visitor (+x/+z camera) so all three read at once
+  buildYavanikaTheatre(m, 28, 42); // theatre stage-left
+  buildTedxStage(m, 52, 42); // red dais stage-right
+  buildNssPost(m, 40, 26); // service post upstage center
+
+  // a small green between the three
+  tree(m, 18, Y + 1, 30, 84, "m");
+  tree(m, 62, Y + 1, 30, 85, "s");
+  lampPost(m, 40, Y + 1, 42);
+  flowers(
+    m, 16, 20, 62, 58,
+    (x, z) => (m.get(x, Y, z) === B.grass ? Y + 1 : -1),
+    92, 0.03
+  );
+
+  // paths joining the three posts
+  path(m, 40, 42, 34, 46); // to the theatre
+  path(m, 40, 42, 52, 46); // to the TEDx dais
+  path(m, 40, 42, 40, 30); // to the NSS post
 
   return m;
 }
@@ -167,16 +197,9 @@ function buildLibrary(m: VoxelModel): void {
   m.set(51, Y + 4, 34, B.paper); // the open book
 }
 
-// — THREE separate extracurricular buildings (never one lumped hut) —
-function buildStage(m: VoxelModel): void {
-  buildTedxStage(m);
-  buildYavanikaTheatre(m);
-  buildNssPost(m);
-}
-
 // TEDx — an open speaking-stage: red dais, arch, spotlight, mic
-function buildTedxStage(m: VoxelModel): void {
-  const cx = 26, z0 = 50, z1 = 58;
+function buildTedxStage(m: VoxelModel, cx: number, z0: number): void {
+  const z1 = z0 + 8;
   // round-ish red dais
   m.fill(cx - 4, Y + 1, z0 + 2, cx + 4, Y + 1, z1 - 2, B.bannerCrimson);
   m.fill(cx - 3, Y + 2, z0 + 3, cx + 3, Y + 2, z1 - 3, B.bookRed);
@@ -196,8 +219,8 @@ function buildTedxStage(m: VoxelModel): void {
 }
 
 // Yavanika — a proper little theatre: proscenium box, curtains, masks
-function buildYavanikaTheatre(m: VoxelModel): void {
-  const x0 = 35, x1 = 47, z0 = 50, z1 = 59;
+function buildYavanikaTheatre(m: VoxelModel, x0: number, z0: number): void {
+  const x1 = x0 + 12, z1 = z0 + 9;
   // stage floor + enclosing side walls + rear
   m.fill(x0, Y + 1, z0, x1, Y + 1, z1, B.woodLight);
   for (let y = Y + 2; y <= Y + 8; y++) {
@@ -216,15 +239,14 @@ function buildYavanikaTheatre(m: VoxelModel): void {
   m.fill(x0, Y + 9, z0, x1, Y + 9, z1, B.roofSlate); // roof slab
   m.fill(x0, Y + 8, z1, x1, Y + 8, z1, B.goldMetal); // marquee rail
   // comedy/tragedy masks over the arch
-  m.set(39, Y + 7, z1, B.white);
-  m.set(43, Y + 7, z1, B.black);
+  m.set(x0 + 4, Y + 7, z1, B.white);
+  m.set(x0 + 8, Y + 7, z1, B.black);
   // footlights
   for (let x = x0 + 2; x <= x1 - 2; x += 3) m.set(x, Y + 1, z1, B.warmLight);
 }
 
 // NSS — a community-service post: kiosk, banner, garden plot, tools
-function buildNssPost(m: VoxelModel): void {
-  const cx = 56, cz = 52;
+function buildNssPost(m: VoxelModel, cx: number, cz: number): void {
   // little kiosk with an awning
   m.fill(cx - 2, Y + 1, cz - 2, cx + 2, Y + 1, cz + 2, B.stone);
   for (let y = Y + 2; y <= Y + 4; y++) m.walls(cx - 2, y, cz - 2, cx + 2, y, cz + 2, B.woodLight);
