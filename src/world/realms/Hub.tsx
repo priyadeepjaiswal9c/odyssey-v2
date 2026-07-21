@@ -6,9 +6,8 @@ import { REALMS } from "../layout";
 import { useWorld, type RealmId } from "../store";
 import { VoxelMesh } from "../VoxelMesh";
 import { buildHubIsland, HUB_SIGNS, HUB_TOP } from "../structures/hub";
-import { BUILT_REALMS, REALM_LABELS } from "../registry";
+import { BUILT_REALMS } from "../registry";
 import { FloatingRock } from "./common";
-import { Sign } from "../Sign";
 
 /** The Hub — spawn island with the wayshrine and four realm signposts. */
 export default function Hub() {
@@ -17,19 +16,11 @@ export default function Hub() {
   return (
     <group position={[pos[0], pos[1] - HUB_TOP, pos[2]]}>
       <VoxelMesh build={buildHubIsland} castShadow receiveShadow />
-      {/* clickable sign hotspots + Monocraft labels */}
+      {/* clickable hotspots to jump into each realm (top-bar nav labels them;
+          the pulled-back hub is a clean establishing shot, no cluttered posts) */}
       {(Object.entries(HUB_SIGNS) as [Exclude<RealmId, "hub">, (typeof HUB_SIGNS)[keyof typeof HUB_SIGNS]][]).map(
         ([realm, sign]) => (
-          <group key={realm}>
-            <SignHotspot realm={realm} local={sign.pos} />
-            <Sign
-              text={REALM_LABELS[realm].toUpperCase()}
-              plank={false}
-              size={0.6}
-              position={[sign.pos[0] - 22, sign.pos[1] + 5.5, sign.pos[2] - 22]}
-              rotation={[0, Math.atan2(sign.pos[0] - 22, sign.pos[2] - 22), 0]}
-            />
-          </group>
+          <SignHotspot key={realm} realm={realm} local={sign.pos} />
         )
       )}
       {/* the beacon chimes when tickled (easter egg) */}
