@@ -140,7 +140,7 @@ export function TopBar({ content }: { content: Content }) {
           <Mail size={17} />
         </a>
         <a className="topbar-link" href="/classic" onClick={() => phase !== "gate" && setWorldActive(false)}>
-          <FileText size={15} /> Résumé
+          <FileText size={15} /> Classic view
         </a>
         <a className="topbar-cta" href="/resume.pdf" download>
           <Download size={15} /> PDF

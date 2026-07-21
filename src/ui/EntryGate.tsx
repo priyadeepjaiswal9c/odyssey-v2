@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ArrowRight, Download, FileText } from "lucide-react";
+import { ArrowRight, Download } from "lucide-react";
 import type { Content } from "@/content/types";
 import { useWorld, type RealmId } from "@/world/store";
 
@@ -35,17 +35,21 @@ export function EntryGate({ content }: { content: Content }) {
         <p className="gate-kicker">{basics.tagline}</p>
         <h1 className="gate-name">{basics.name}</h1>
         <p className="gate-what">{basics.whatIDo}</p>
-        <button className="gate-enter" onClick={enter}>
-          Enter the world <ArrowRight size={18} />
-        </button>
-        <div className="gate-links">
-          <a href="/resume.pdf" download>
-            <Download size={14} /> Résumé PDF
-          </a>
-          <a href="/classic">
-            <FileText size={14} /> Read as text
+        <div className="gate-choices">
+          <button className="gate-choice gate-choice-primary" onClick={enter}>
+            <span className="gate-choice-label">Enter the world</span>
+            <span className="gate-choice-sub">explore in 3D</span>
+            <ArrowRight size={18} className="gate-choice-arrow" />
+          </button>
+          <a className="gate-choice" href="/classic">
+            <span className="gate-choice-label">Classic view</span>
+            <span className="gate-choice-sub">read it straight</span>
+            <ArrowRight size={18} className="gate-choice-arrow" />
           </a>
         </div>
+        <a className="gate-pdf" href="/resume.pdf" download>
+          <Download size={14} /> Download PDF
+        </a>
       </div>
     </div>
   );

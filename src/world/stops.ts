@@ -16,24 +16,16 @@ export function buildStops(content: Content): TourStop[] {
   const stops: TourStop[] = [];
   const hub = REALMS.hub.pos;
 
-  // — Hub: establishing shot, then the shrine up close —
+  // — Hub: a single establishing shot —
   stops.push({
     id: "hub-welcome",
     realm: "hub",
-    cam: [hub[0] + 24, hub[1] + 19, hub[2] + 30],
-    target: [hub[0], hub[1] + 7, hub[2]],
-    holdMs: 3600,
-  });
-  stops.push({
-    id: "hub-shrine",
-    realm: "hub",
-    // approach over the pond — clear sightline to the wayshrine
-    cam: [hub[0] + 12, hub[1] + 11, hub[2] + 20],
-    target: [hub[0], hub[1] + 5, hub[2]],
-    holdMs: 3000,
+    cam: [hub[0] + 34, hub[1] + 28, hub[2] + 46],
+    target: [hub[0], hub[1] + 6, hub[2]],
+    holdMs: 4200,
   });
 
-  // — Projects (islands present in both feed and world) —
+  // — Projects: one framed showcase per island —
   const projRealm = REALMS.projects.pos;
   for (const proj of content.projects) {
     const offset = PROJECT_ISLAND_OFFSETS[proj.slug];
@@ -45,97 +37,57 @@ export function buildStops(content: Content): TourStop[] {
       projRealm[2] + offset[2],
     ];
     stops.push({
-      id: `${proj.slug}-approach`,
-      realm: "projects",
-      cam: [p[0] + 34, p[1] + 20, p[2] + 40],
-      target: [p[0], p[1] + 9, p[2]],
-      holdMs: 3400,
-    });
-    stops.push({
       id: `${proj.slug}-showcase`,
       realm: "projects",
-      cam: [p[0] + 30, p[1] + 15, p[2] + 42],
-      target: [p[0] + 2, p[1] + 6, p[2] + 2],
+      cam: [p[0] + 48, p[1] + 30, p[2] + 56],
+      target: [p[0], p[1] + 6, p[2]],
       showcase: proj.slug,
-      holdMs: 7000,
+      holdMs: 6000,
     });
   }
 
-  // — Experience village: forge → study → stage —
+  // — Experience: one frame for the work, one for the extra-curriculars —
   const e = REALMS.experience.pos;
   stops.push(
     {
-      id: "exp-village",
+      id: "exp-work",
       realm: "experience",
-      cam: [e[0] + 36, e[1] + 22, e[2] + 44],
-      target: [e[0], e[1] + 8, e[2]],
-      holdMs: 3400,
-    },
-    {
-      id: "exp-forge",
-      realm: "experience",
-      cam: [e[0] - 3, e[1] + 11, e[2] + 18],
-      target: [e[0] - 10, e[1] + 4, e[2] - 8],
+      cam: [e[0] + 46, e[1] + 32, e[2] + 54],
+      target: [e[0], e[1] + 6, e[2]],
       showcase: "#work",
-      holdMs: 6800,
+      holdMs: 6000,
     },
     {
-      id: "exp-study",
+      id: "exp-extra",
       realm: "experience",
-      cam: [e[0] + 19, e[1] + 8, e[2] + 10],
-      target: [e[0] + 11, e[1] + 4, e[2] - 6],
-      showcase: "#education",
-      holdMs: 5400,
-    },
-    {
-      id: "exp-stage",
-      realm: "experience",
-      cam: [e[0], e[1] + 14, e[2] + 37],
-      target: [e[0], e[1] + 4, e[2] + 13],
+      cam: [e[0] - 46, e[1] + 30, e[2] + 52],
+      target: [e[0], e[1] + 6, e[2]],
       showcase: "#volunteer",
-      holdMs: 6200,
+      holdMs: 6000,
     }
   );
 
-  // — Hall of Achievements —
+  // — Achievements: one framed showcase —
   const a = REALMS.achievements.pos;
-  stops.push(
-    {
-      id: "ach-hall",
-      realm: "achievements",
-      cam: [a[0] + 26, a[1] + 16, a[2] + 34],
-      target: [a[0], a[1] + 7, a[2]],
-      holdMs: 3200,
-    },
-    {
-      id: "ach-trophies",
-      realm: "achievements",
-      cam: [a[0] + 1, a[1] + 11, a[2] + 27],
-      target: [a[0], a[1] + 5, a[2] + 0],
-      showcase: "#awards",
-      holdMs: 7000,
-    }
-  );
+  stops.push({
+    id: "ach-hall",
+    realm: "achievements",
+    cam: [a[0] + 42, a[1] + 30, a[2] + 50],
+    target: [a[0], a[1] + 6, a[2]],
+    showcase: "#awards",
+    holdMs: 6000,
+  });
 
-  // — About: home, then the signposts —
+  // — Contact: the final, centered frame — the journey ends here —
   const b = REALMS.about.pos;
-  stops.push(
-    {
-      id: "about-home",
-      realm: "about",
-      cam: [b[0] + 24, b[1] + 14, b[2] + 30],
-      target: [b[0], b[1] + 6, b[2]],
-      holdMs: 3600,
-    },
-    {
-      id: "about-contact",
-      realm: "about",
-      cam: [b[0] - 4, b[1] + 9, b[2] + 26],
-      target: [b[0] - 6, b[1] + 4, b[2] + 8],
-      showcase: "#contact",
-      holdMs: 8000,
-    }
-  );
+  stops.push({
+    id: "about-contact",
+    realm: "about",
+    cam: [b[0], b[1] + 26, b[2] + 58],
+    target: [b[0], b[1] + 6, b[2]],
+    showcase: "#contact",
+    holdMs: 8000,
+  });
 
   return stops.filter((s) =>
     (BUILT_REALMS as readonly string[]).includes(s.realm)

@@ -10,7 +10,6 @@ import { buildMeridianIsland, MERIDIAN_TOP, MERIDIAN_POI } from "../structures/m
 import { buildTarkIsland, TARK_TOP, TARK_POI } from "../structures/tark";
 import { buildCabIsland, CAB_TOP, CAB_POI } from "../structures/campuscab";
 import { FloatingRock } from "./common";
-import { Sign } from "../Sign";
 
 /**
  * The Projects archipelago — three bespoke islands (Meridian, TARK, Campus Cab),
@@ -119,36 +118,30 @@ function HoloScreen({
 
 // ————— Meridian —————
 function MeridianIsland({ base }: { base: [number, number, number] }) {
-  const face: [number, number, number] = [0, Math.PI * 0.22, 0];
   return (
     <group position={islandPos(base, "meridian", MERIDIAN_TOP)}>
       <VoxelMesh build={buildMeridianIsland} maxHalos={10} />
       <HoloScreen anchor={MERIDIAN_POI.screen} title="Meridian" subtitle="Multi-Agent Energy AI" accent="#8fd4e6" />
-      <Sign text="MERIDIAN" sub="Energy Supply-Chain AI" position={[-9, MERIDIAN_TOP + 7, 13]} rotation={face} size={1.15} postHeight={7} />
     </group>
   );
 }
 
 // ————— TARK —————
 function TarkIsland({ base }: { base: [number, number, number] }) {
-  const face: [number, number, number] = [0, Math.PI * 0.22, 0];
   return (
     <group position={islandPos(base, "tark", TARK_TOP)}>
       <VoxelMesh build={buildTarkIsland} maxHalos={10} />
       <HoloScreen anchor={TARK_POI.screen} title="TARK AI" subtitle="Legal Assistant" accent="#9ee6b0" />
-      <Sign text="TARK" sub="Legal AI" position={[-10, TARK_TOP + 7, 13]} rotation={face} size={1.15} postHeight={7} />
     </group>
   );
 }
 
 // ————— Campus Cab —————
 function CabIsland({ base }: { base: [number, number, number] }) {
-  const face: [number, number, number] = [0, Math.PI * 0.22, 0];
   return (
     <group position={islandPos(base, "campuscab", CAB_TOP)}>
       <VoxelMesh build={buildCabIsland} maxHalos={10} />
       <HoloScreen anchor={CAB_POI.screen} title="Campus Cab" subtitle="Ride Pooling" accent="#ffc98a" />
-      <Sign text="CAMPUS CAB" sub="Campus Rides" position={[-12, CAB_TOP + 7, 11]} rotation={face} size={1.1} postHeight={7} />
     </group>
   );
 }
