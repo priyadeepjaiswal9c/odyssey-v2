@@ -1,20 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import type { Content } from "@/content/types";
-import { audio } from "@/lib/audio";
 import { REALMS } from "../layout";
 import { VoxelMesh } from "../VoxelMesh";
 import { Particles } from "../Particles";
-import { buildAboutIsland, ABOUT_TOP, ABOUT_POI } from "../structures/about";
+import { buildAboutIsland, ABOUT_TOP } from "../structures/about";
 import { FloatingRock } from "./common";
 import { Sign } from "../Sign";
 
-/** The About island — home base with clickable social signposts. */
-export default function AboutRealm({ content }: { content: Content }) {
+/** The About island — home base. */
+export default function AboutRealm(_props: { content: Content }) {
   const base = REALMS.about.pos;
-  const github = content.basics.profiles.find((p) => p.network === "GitHub");
-  const linkedin = content.basics.profiles.find((p) => p.network === "LinkedIn");
 
   return (
     <group>
@@ -31,30 +27,13 @@ export default function AboutRealm({ content }: { content: Content }) {
           seed={21}
           opacity={0.35}
         />
-        {github && <SignHotspot local={ABOUT_POI.signGitHub} url={github.url} />}
-        {linkedin && <SignHotspot local={ABOUT_POI.signLinkedIn} url={linkedin.url} />}
-        <SignHotspot
-          local={ABOUT_POI.signEmail}
-          url={`mailto:${content.basics.email}`}
-        />
-        <SignHotspot
-          local={ABOUT_POI.mailbox}
-          url={`mailto:${content.basics.email}`}
-        />
-
-        {/* labeled home base */}
+        {/* one clean realm title — contact links live in the top bar + card */}
         <Sign
           text="HOME"
           sub="About · Contact"
-          position={[9, ABOUT_TOP + 4.8, 11]}
-          rotation={[0, Math.PI * 0.15, 0]}
-          size={0.85}
-          postHeight={4.8}
+          position={[0, ABOUT_TOP + 14, 6]}
+          size={1.4}
         />
-        <Sign text="GITHUB" plank={false} size={0.55} position={[ABOUT_POI.signGitHub[0] - 26, ABOUT_TOP + 5.7, ABOUT_POI.signGitHub[2] - 26]} />
-        <Sign text="LINKEDIN" plank={false} size={0.55} position={[ABOUT_POI.signLinkedIn[0] - 26, ABOUT_TOP + 5.7, ABOUT_POI.signLinkedIn[2] - 26]} />
-        <Sign text="EMAIL" plank={false} size={0.55} position={[ABOUT_POI.signEmail[0] - 26, ABOUT_TOP + 5.7, ABOUT_POI.signEmail[2] - 26]} />
-        <Sign text="MAILBOX" plank={false} size={0.5} position={[ABOUT_POI.mailbox[0] - 26, ABOUT_TOP + 4.9, ABOUT_POI.mailbox[2] - 26]} color="#ffb84d" />
       </group>
       <FloatingRock position={[base[0] - 34, base[1] + 8, base[2] - 22]} seed={501} size={4} />
       <FloatingRock position={[base[0] + 32, base[1] + 16, base[2] + 26]} seed={502} size={3} />
@@ -62,44 +41,3 @@ export default function AboutRealm({ content }: { content: Content }) {
   );
 }
 
-/** invisible click target over a sign — opens the link in a new tab */
-function SignHotspot({
-  local,
-  url,
-}: {
-  local: [number, number, number];
-  url: string;
-}) {
-  const [hover, setHover] = useState(false);
-  // island model is 52 wide, anchored bottom-centered → shift by -26
-  const x = local[0] - 26;
-  const z = local[2] - 26;
-  const y = local[1];
-
-  return (
-    <mesh
-      position={[x, y + 2.5, z]}
-      onClick={(e) => {
-        e.stopPropagation();
-        audio.click();
-        window.open(url, "_blank", "noopener");
-      }}
-      onPointerOver={() => {
-        setHover(true);
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        setHover(false);
-        document.body.style.cursor = "";
-      }}
-    >
-      <boxGeometry args={[3.4, 6, 3.4]} />
-      <meshBasicMaterial
-        transparent
-        opacity={hover ? 0.14 : 0}
-        color="#ffd98a"
-        depthWrite={false}
-      />
-    </mesh>
-  );
-}

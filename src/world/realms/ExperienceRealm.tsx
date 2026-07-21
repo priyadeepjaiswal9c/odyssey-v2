@@ -31,12 +31,8 @@ export default function ExperienceRealm() {
           seed={11}
           opacity={0.8}
         />
-        {/* each shop signed on its building's face */}
-        <Sign text="WINDFLOW.AI" sub="AI Engineering Intern" position={[-10, EXP_TOP + 7.4, -7.4]} size={1.0} />
-        <Sign text="IIT PATNA" sub="B.Tech ECE" position={[13, EXP_TOP + 6.4, -8.4]} size={1.0} />
-        <Sign text="TEDx" sub="Speaker · Organizer" position={[-14, EXP_TOP + 8.2, 14.2]} size={1.0} />
-        <Sign text="YAVANIKA" sub="Dramatics" position={[1, EXP_TOP + 8.4, 19.6]} size={1.0} />
-        <Sign text="NSS" sub="Community Service" position={[16, EXP_TOP + 5.8, 14.6]} size={1.0} />
+        {/* one clean realm title — per-item detail lives in the showcase card */}
+        <Sign text="THE GUILDS" sub="Experience" position={[0, EXP_TOP + 16, 4]} size={1.4} />
       </group>
       <FloatingRock position={[base[0] - 46, base[1] + 14, base[2] + 20]} seed={301} size={4} />
       <FloatingRock position={[base[0] + 42, base[1] - 6, base[2] - 30]} seed={302} size={5} />

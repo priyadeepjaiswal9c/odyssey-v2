@@ -65,7 +65,7 @@ export default function AchievementsRealm({ content }: { content: Content }) {
           </mesh>
         )}
 
-        {/* per-award: beacon beam + nameplate */}
+        {/* per-award beacon beams — the award detail lives in the showcase card */}
         {plinths.map((p, i) => {
           const award = content.awards[i];
           if (!award) return null;
@@ -74,14 +74,6 @@ export default function AchievementsRealm({ content }: { content: Content }) {
           return (
             <group key={award.title} position={[x, ACH_TOP, z]}>
               <BeaconBeam />
-              <Sign
-                text={shortTitle(award.title)}
-                position={[0, 2.1, 1.4]}
-                rotation={[0, 0, 0]}
-                size={0.62}
-                plank={false}
-                color="#ffe9c4"
-              />
             </group>
           );
         })}
@@ -90,10 +82,6 @@ export default function AchievementsRealm({ content }: { content: Content }) {
       <FloatingRock position={[base[0] + 38, base[1] - 4, base[2] - 20]} seed={402} size={3} />
     </group>
   );
-}
-
-function shortTitle(t: string): string {
-  return t.length > 26 ? t.slice(0, 24).trimEnd() + "…" : t;
 }
 
 /** a warm volumetric-ish beacon: additive gradient column, gently breathing */

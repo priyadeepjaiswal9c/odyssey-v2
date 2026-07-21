@@ -30,8 +30,9 @@ export function Sign({
 }) {
   // clamp a readable minimum — many call sites shrink labels to ~0.5
   const s = Math.max(size, 0.9);
-  const width = Math.max(text.length, sub ? sub.length * 0.62 : 0) * s * 0.62 + s;
-  const height = sub ? s * 2.6 : s * 1.8;
+  // generous board so text never clips (no maxWidth on the Text)
+  const width = Math.max(text.length, sub ? sub.length * 0.72 : 0) * s * 0.7 + s * 1.8;
+  const height = sub ? s * 2.7 : s * 1.9;
 
   return (
     <group position={position} rotation={rotation}>
@@ -47,19 +48,19 @@ export function Sign({
           </mesh>
         </>
       )}
-      {/* the board always turns to face the camera → labels are never backwards */}
+      {/* the board faces the camera AND draws on top of world geometry, so
+          labels are never backwards, never occluded, and never clipped */}
       <Billboard follow>
-        {/* dark backing so text stays legible from any angle */}
-        <mesh position={[0, 0, -0.02]}>
-          <planeGeometry args={[width, height]} />
-          <meshBasicMaterial color="#241c12" transparent opacity={0.86} />
+        {/* thin wood frame */}
+        <mesh position={[0, 0, -0.04]} renderOrder={20}>
+          <planeGeometry args={[width + 0.5, height + 0.5]} />
+          <meshBasicMaterial color="#5a3f28" transparent depthTest={false} depthWrite={false} />
         </mesh>
-        {plank && (
-          <mesh position={[0, 0, -0.05]}>
-            <planeGeometry args={[width + 0.4, height + 0.4]} />
-            <meshBasicMaterial color="#6b4a2e" />
-          </mesh>
-        )}
+        {/* dark board */}
+        <mesh position={[0, 0, -0.02]} renderOrder={21}>
+          <planeGeometry args={[width, height]} />
+          <meshBasicMaterial color="#211812" transparent opacity={0.94} depthTest={false} depthWrite={false} />
+        </mesh>
         <Text
           font="/fonts/SpaceGrotesk.ttf"
           fontSize={s}
@@ -67,25 +68,31 @@ export function Sign({
           anchorX="center"
           anchorY={sub ? "bottom" : "middle"}
           position={[0, sub ? 0.12 : 0, 0.02]}
-          outlineWidth={s * 0.08}
-          outlineColor="#241c12"
-          maxWidth={width - s * 0.6}
+          outlineWidth={s * 0.06}
+          outlineColor="#211812"
           textAlign="center"
+          renderOrder={22}
+          material-depthTest={false}
+          material-depthWrite={false}
+          material-toneMapped={false}
         >
           {text}
         </Text>
         {sub && (
           <Text
             font="/fonts/SpaceGrotesk.ttf"
-            fontSize={s * 0.52}
+            fontSize={s * 0.5}
             color="#ffcf87"
             anchorX="center"
             anchorY="top"
             position={[0, -0.08, 0.02]}
-            outlineWidth={s * 0.05}
-            outlineColor="#241c12"
-            maxWidth={width - s * 0.6}
+            outlineWidth={s * 0.04}
+            outlineColor="#211812"
             textAlign="center"
+            renderOrder={22}
+            material-depthTest={false}
+            material-depthWrite={false}
+            material-toneMapped={false}
           >
             {sub}
           </Text>

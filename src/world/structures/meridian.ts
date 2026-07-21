@@ -184,7 +184,7 @@ function buildScreen(m: VoxelModel): void {
   m.set(sx - 3, sy, sz, B.steelDark);
   m.set(sx + 3, sy, sz, B.steelDark);
   m.fill(sx - 4, sy + 1, sz, sx + 4, sy + 6, sz, B.steel);
-  m.fill(sx - 3, sy + 2, sz, sx + 3, sy + 5, sz, B.screen);
+  m.fill(sx - 3, sy + 2, sz, sx + 3, sy + 5, sz, B.steelDark);
   m.set(sx + 4, sy + 7, sz, B.warning);
 }
 
