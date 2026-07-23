@@ -29,8 +29,8 @@ export default function AboutRealm(_props: { content: Content }) {
         />
         {/* one clean realm title — contact links live in the top bar + card */}
         <Sign
-          text="HOME"
-          sub="About · Contact"
+          text="CONTACT"
+          sub="Let's talk"
           position={[0, ABOUT_TOP + 18, 6]}
           size={1.4}
         />

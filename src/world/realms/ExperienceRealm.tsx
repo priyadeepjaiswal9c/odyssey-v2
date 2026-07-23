@@ -37,13 +37,13 @@ export default function ExperienceRealm() {
           opacity={0.8}
         />
         {/* one clean realm title — per-item detail lives in the showcase card */}
-        <Sign text="THE GUILDS" sub="Work · Study" position={[0, EXP_TOP + 16, 4]} size={1.4} />
+        <Sign text="EXPERIENCE" sub="Work & Study" position={[0, EXP_TOP + 16, 4]} size={1.4} />
       </group>
 
       {/* — the extra-curricular island, a world of its own — */}
       <group position={extra}>
         <VoxelMesh build={buildExtraIsland} maxHalos={10} />
-        <Sign text="THE COMMONS" sub="Extra-curricular" position={[0, EXP_TOP + 19, 12]} size={1.3} />
+        <Sign text="EXTRACURRICULAR" sub="Stage & Service" position={[0, EXP_TOP + 19, 12]} size={1.3} />
       </group>
 
       <FloatingRock position={[base[0] - 40, base[1] + 22, base[2] - 28]} seed={301} size={4} />

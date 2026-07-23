@@ -10,8 +10,10 @@ import { audio } from "@/lib/audio";
 
 /**
  * The cinematic camera. Menu phase: a slow establishing orbit around the
- * hub. World phase: GSAP arc flights between stops, idle drift while
- * parked, soft pointer parallax. No user camera control — a directed diorama.
+ * hub. World phase: GSAP arc flights between stops, idle drift while parked,
+ * soft pointer parallax — AND drag-to-look-around, so a visitor can grab
+ * any island and orbit it. Releasing keeps the new angle; scrolling to the
+ * next stop re-frames cleanly.
  */
 
 // module-level rig so Kip (and effects) can read flight state
@@ -23,8 +25,45 @@ export const rig = {
   activeTl: null as gsap.core.Timeline | null,
 };
 
+// user look-around, orbiting the parked target. Damped toward the drag
+// target; forced back to 0 during flights so each stop frames the same way.
+const orbit = {
+  yaw: 0,
+  pitch: 0,
+  tYaw: 0,
+  tPitch: 0,
+  dragging: false,
+};
+const YAW_MAX = 0.9;
+const PITCH_MIN = -0.5;
+const PITCH_MAX = 0.55;
+
+// a soft ring cursor — outline when you can grab, filled while dragging.
+// built + encoded at runtime so the data-URI is always valid (falls back
+// to native grab/grabbing if a browser refuses SVG cursors).
+function ringCursor(filled: boolean): string {
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'>` +
+    `<circle cx='15' cy='15' r='10' ${
+      filled ? "fill='rgba(255,201,128,0.28)'" : "fill='none'"
+    } stroke='rgb(255,235,205)' stroke-width='1.8'/>` +
+    `<circle cx='15' cy='15' r='${filled ? 2.6 : 1.9}' fill='rgb(255,235,205)'/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 15 15, ${
+    filled ? "grabbing" : "grab"
+  }`;
+}
+const CURSOR_GRAB = ringCursor(false);
+const CURSOR_DRAG = ringCursor(true);
+
+/** clear the look-around (call when a new flight begins) */
+function resetOrbit() {
+  orbit.tYaw = 0;
+  orbit.tPitch = 0;
+}
+
 export function CameraRig() {
   const camera = useThree((s) => s.camera);
+  const gl = useThree((s) => s.gl);
   const stops = useWorld((s) => s.stops);
   const targetIndex = useWorld((s) => s.targetIndex);
   const phase = useWorld((s) => s.phase);
@@ -41,9 +80,59 @@ export function CameraRig() {
         new THREE.Vector3()
       ),
       look: new THREE.Vector3(),
+      off: new THREE.Vector3(),
+      sph: new THREE.Spherical(),
+      pos: new THREE.Vector3(),
     }),
     []
   );
+
+  // — drag to look around the parked island —
+  useEffect(() => {
+    const el = gl.domElement;
+    let lastX = 0;
+    let lastY = 0;
+    const canDrag = () => !rig.flying && useWorld.getState().phase === "world";
+
+    const down = (e: PointerEvent) => {
+      if (!canDrag() || e.button !== 0) return;
+      orbit.dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      el.style.cursor = CURSOR_DRAG;
+    };
+    const move = (e: PointerEvent) => {
+      if (!orbit.dragging) return;
+      const dx = (e.clientX - lastX) / window.innerWidth;
+      const dy = (e.clientY - lastY) / window.innerHeight;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      orbit.tYaw = THREE.MathUtils.clamp(orbit.tYaw - dx * 2.7, -YAW_MAX, YAW_MAX);
+      orbit.tPitch = THREE.MathUtils.clamp(orbit.tPitch + dy * 2.0, PITCH_MIN, PITCH_MAX);
+    };
+    const up = () => {
+      if (!orbit.dragging) return;
+      orbit.dragging = false;
+      el.style.cursor = canDrag() ? CURSOR_GRAB : "";
+    };
+
+    const syncCursor = () => {
+      if (!orbit.dragging) el.style.cursor = canDrag() ? CURSOR_GRAB : "";
+    };
+    syncCursor();
+
+    el.addEventListener("pointerdown", down);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    const cursorTimer = window.setInterval(syncCursor, 400);
+    return () => {
+      el.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.clearInterval(cursorTimer);
+      el.style.cursor = "";
+    };
+  }, [gl]);
 
   // — leaving the menu: glide from the orbit into the current stop —
   useEffect(() => {
@@ -90,6 +179,7 @@ export function CameraRig() {
   ) {
     tl.current?.kill();
     rig.flying = true;
+    resetOrbit(); // re-frame each stop cleanly
     const from = rig.pos.clone();
     const fromT = rig.target.clone();
     const dist = from.distanceTo(dest);
@@ -116,8 +206,10 @@ export function CameraRig() {
   }
 
   useFrame((state, dt) => {
+    const st = useWorld.getState();
+
     // menu backdrop: slow orbit high over the hub
-    if (useWorld.getState().phase === "menu" && !rig.flying) {
+    if (st.phase === "menu" && !rig.flying) {
       menuAngle.current += dt * 0.05;
       const hub = REALMS.hub.pos;
       rig.pos.set(
@@ -128,23 +220,43 @@ export function CameraRig() {
       rig.target.set(hub[0], hub[1] + 5, hub[2]);
     }
 
-    // pointer parallax — only when parked (never nudges an in-flight path)
-    const parked = !rig.flying && useWorld.getState().phase === "world";
+    // look-around: while flying, ease the offsets back to a clean frame
+    if (rig.flying) resetOrbit();
+    orbit.yaw = THREE.MathUtils.damp(orbit.yaw, orbit.tYaw, 9, dt);
+    orbit.pitch = THREE.MathUtils.damp(orbit.pitch, orbit.tPitch, 9, dt);
+
+    // pointer parallax — only when parked and NOT actively dragging
+    const parked = !rig.flying && st.phase === "world";
+    const wantPar = parked && !orbit.dragging;
     parallax.current.x = THREE.MathUtils.damp(
-      parallax.current.x, parked ? state.pointer.x : 0, 2.2, dt
+      parallax.current.x, wantPar ? state.pointer.x : 0, 2.2, dt
     );
     parallax.current.y = THREE.MathUtils.damp(
-      parallax.current.y, parked ? state.pointer.y : 0, 2.2, dt
+      parallax.current.y, wantPar ? state.pointer.y : 0, 2.2, dt
     );
 
+    // orbit the framed camera position around its target
+    tmp.off.subVectors(rig.pos, rig.target);
+    tmp.sph.setFromVector3(tmp.off);
+    tmp.sph.theta += orbit.yaw;
+    tmp.sph.phi = THREE.MathUtils.clamp(
+      tmp.sph.phi - orbit.pitch,
+      0.14 * Math.PI,
+      0.62 * Math.PI
+    );
+    tmp.sph.makeSafe();
+    tmp.off.setFromSpherical(tmp.sph);
+    tmp.pos.addVectors(rig.target, tmp.off);
+
     const t = state.clock.elapsedTime;
-    // slow idle breathing only when parked; flights stay perfectly steady
-    const idle = rig.flying ? 0 : 1;
+    // slow idle breathing only when parked; flights stay perfectly steady.
+    // the breathing also fades out while the visitor is actively dragging.
+    const idle = rig.flying || orbit.dragging ? 0 : 1;
     const dx = Math.sin(t * 0.12) * 0.35 * idle + parallax.current.x * 0.8;
     const dy = Math.sin(t * 0.09) * 0.22 * idle + parallax.current.y * 0.5;
     const dz = Math.cos(t * 0.1) * 0.28 * idle;
 
-    camera.position.set(rig.pos.x + dx, rig.pos.y + dy, rig.pos.z + dz);
+    camera.position.set(tmp.pos.x + dx, tmp.pos.y + dy, tmp.pos.z + dz);
     tmp.look.set(
       rig.target.x + parallax.current.x * 0.4,
       rig.target.y + parallax.current.y * 0.25,

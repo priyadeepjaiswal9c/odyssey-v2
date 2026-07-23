@@ -33,8 +33,8 @@ export default function AchievementsRealm({ content }: { content: Content }) {
 
         {/* hall banner */}
         <Sign
-          text="MONUMENT HALL"
-          sub="Achievements"
+          text="ACHIEVEMENTS"
+          sub="Milestones"
           position={[0, ACH_TOP + 11.6, -13.6]}
           rotation={[0, 0, 0]}
           size={1.05}

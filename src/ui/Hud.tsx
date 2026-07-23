@@ -161,7 +161,7 @@ function ScrollHint() {
   return (
     <div className="scroll-hint" aria-hidden>
       <MousePointer2 size={16} />
-      <span>scroll to explore</span>
+      <span>drag to look around · scroll to move on</span>
       <ChevronRight size={16} className="scroll-hint-arrow" />
     </div>
   );
@@ -253,7 +253,7 @@ function buildCard(slug: string, content: Content): CardData | null {
       };
     case "#volunteer":
       return {
-        kicker: "beyond the classroom",
+        kicker: "extracurricular",
         title: "Extra-curricular",
         items: content.volunteer.map((v) => `${v.role} — ${v.summary}`),
       };
@@ -270,7 +270,7 @@ function buildCard(slug: string, content: Content): CardData | null {
         { label: "Résumé PDF", url: "/resume.pdf" },
       ];
       return {
-        kicker: "say hi",
+        kicker: "contact",
         title: content.basics.name,
         tags: content.basics.location,
         summary: content.basics.summary,
