@@ -1,0 +1,10 @@
+import puppeteer from "puppeteer-core";
+const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const b = await puppeteer.launch({ executablePath: CHROME, headless: "new", args:["--no-first-run","--hide-scrollbars"], defaultViewport:{width:1440,height:900,deviceScaleFactor:1}});
+const p = await b.newPage();
+await p.goto("http://localhost:3000/classic", { waitUntil:"networkidle2", timeout:60000 });
+await new Promise(r=>setTimeout(r,1400));
+await p.evaluate(()=>{const el=document.getElementById("achievements"); el&&el.scrollIntoView();});
+await new Promise(r=>setTimeout(r,1100));
+await p.screenshot({ path:"/tmp/kalpana-shots/classic-dark-awards.png" });
+await b.close(); console.log("awards shot done");
