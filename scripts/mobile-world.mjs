@@ -1,0 +1,14 @@
+import puppeteer from "puppeteer-core";
+const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const b = await puppeteer.launch({ executablePath: CHROME, headless:false, userDataDir:"/tmp/kalpana-m-profile", args:["--window-size=430,900","--no-first-run","--hide-scrollbars","--mute-audio"], defaultViewport:{width:390,height:800,deviceScaleFactor:2,isMobile:true,hasTouch:true}});
+const p = await b.newPage();
+await p.goto("http://localhost:3000/",{waitUntil:"networkidle2",timeout:60000});
+await p.waitForFunction(()=>window.__kalpana&&window.__frames>5,{timeout:45000,polling:250}).catch(()=>{});
+await new Promise(r=>setTimeout(r,1800));
+await p.screenshot({path:"/tmp/kalpana-shots/m-home.png"});
+await p.evaluate(()=>document.querySelector(".gate-choice-primary")?.click());
+await new Promise(r=>setTimeout(r,2600));
+await p.evaluate(()=>window.__kalpana&&window.__kalpana.render(4));
+await new Promise(r=>setTimeout(r,700));
+await p.screenshot({path:"/tmp/kalpana-shots/m-world.png"});
+await b.close(); console.log("mobile world done");

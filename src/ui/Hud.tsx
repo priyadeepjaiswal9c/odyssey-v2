@@ -19,6 +19,7 @@ import type { Content } from "@/content/types";
 import { audio } from "@/lib/audio";
 import { useWorld, type RealmId } from "@/world/store";
 import { REALM_LABELS, BUILT_REALMS } from "@/world/registry";
+import { GuideLayer } from "./GuideLayer";
 
 /** In-world HUD: the showcase card, edge nav, and the scroll hint. */
 export function Hud({ content }: { content: Content }) {
@@ -30,9 +31,11 @@ export function Hud({ content }: { content: Content }) {
     const onKey = (e: KeyboardEvent) => {
       const st = useWorld.getState();
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        if (st.targetIndex !== null) return;
         audio.click();
         st.next();
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        if (st.targetIndex !== null) return;
         audio.click();
         st.prev();
       } else if (e.key === "Escape") {
@@ -49,6 +52,7 @@ export function Hud({ content }: { content: Content }) {
       <ShowcaseCard content={content} />
       <EdgeNav />
       <ScrollHint />
+      <GuideLayer />
     </div>
   );
 }
@@ -109,6 +113,7 @@ export function TopBar({ content }: { content: Content }) {
           <>
             <button
               className="topbar-icon"
+              data-guide="night"
               onClick={toggleNight}
               title={night ? "Golden hour" : "Night"}
               aria-label={night ? "Switch to golden hour" : "Switch to night"}
@@ -139,8 +144,8 @@ export function TopBar({ content }: { content: Content }) {
         <a className="topbar-icon" href={`mailto:${content.basics.email}`} title="Email">
           <Mail size={17} />
         </a>
-        <a className="topbar-link" href="/classic" onClick={() => phase !== "gate" && setWorldActive(false)}>
-          <FileText size={15} /> Classic view
+        <a className="topbar-link" data-guide="classic" href="/classic" onClick={() => phase !== "gate" && setWorldActive(false)}>
+          <FileText size={15} /> <span className="topbar-link-label">Classic view</span>
         </a>
         <a className="topbar-cta" href="/resume.pdf" download>
           <Download size={15} /> PDF
@@ -180,10 +185,15 @@ function EdgeNav() {
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
       if ((e.target as HTMLElement | null)?.closest(".hud-card")) return;
-      const now = performance.now();
-      if (now - wheelLock.current < 750 || Math.abs(e.deltaY) < 10) return;
-      wheelLock.current = now;
       const st = useWorld.getState();
+      // mid-flight: swallow wheel so a single momentum scroll can't skip a stop
+      if (st.targetIndex !== null) {
+        wheelLock.current = performance.now();
+        return;
+      }
+      const now = performance.now();
+      if (now - wheelLock.current < 650 || Math.abs(e.deltaY) < 10) return;
+      wheelLock.current = now;
       if (e.deltaY > 0) st.next();
       else st.prev();
     };

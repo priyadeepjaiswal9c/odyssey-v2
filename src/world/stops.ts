@@ -16,12 +16,12 @@ export function buildStops(content: Content): TourStop[] {
   const stops: TourStop[] = [];
   const hub = REALMS.hub.pos;
 
-  // — Hub: a single establishing shot —
+  // — Hub: the home — framed to hold the island, beacon and floating name —
   stops.push({
     id: "hub-welcome",
     realm: "hub",
-    cam: [hub[0] + 34, hub[1] + 28, hub[2] + 46],
-    target: [hub[0], hub[1] + 6, hub[2]],
+    cam: [hub[0] + 30, hub[1] + 24, hub[2] + 42],
+    target: [hub[0], hub[1] + 8, hub[2]],
     holdMs: 4200,
   });
 

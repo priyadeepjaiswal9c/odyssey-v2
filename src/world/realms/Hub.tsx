@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { Content } from "@/content/types";
 import { audio } from "@/lib/audio";
 import { REALMS } from "../layout";
 import { useWorld, type RealmId } from "../store";
@@ -8,16 +9,23 @@ import { VoxelMesh } from "../VoxelMesh";
 import { buildHubIsland, HUB_SIGNS, HUB_TOP } from "../structures/hub";
 import { BUILT_REALMS } from "../registry";
 import { FloatingRock } from "./common";
+import { Sign } from "../Sign";
 
-/** The Hub — spawn island with the wayshrine and four realm signposts. */
-export default function Hub() {
+/** The Hub — the home island: a glowing wayshrine crowned with the name. */
+export default function Hub({ content }: { content: Content }) {
   const pos = REALMS.hub.pos;
 
   return (
     <group position={[pos[0], pos[1] - HUB_TOP, pos[2]]}>
       <VoxelMesh build={buildHubIsland} castShadow receiveShadow />
-      {/* clickable hotspots to jump into each realm (top-bar nav labels them;
-          the pulled-back hub is a clean establishing shot, no cluttered posts) */}
+      {/* the home's identity — floats over the beacon, greets on arrival */}
+      <Sign
+        text={content.basics.name}
+        sub="AI Engineer · Portfolio"
+        position={[0, HUB_TOP + 19, 0]}
+        size={1.5}
+      />
+      {/* clickable hotspots to jump into each realm (top-bar nav labels them) */}
       {(Object.entries(HUB_SIGNS) as [Exclude<RealmId, "hub">, (typeof HUB_SIGNS)[keyof typeof HUB_SIGNS]][]).map(
         ([realm, sign]) => (
           <SignHotspot key={realm} realm={realm} local={sign.pos} />

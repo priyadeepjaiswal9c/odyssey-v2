@@ -104,7 +104,7 @@ export default function World({ content }: { content: Content }) {
         <CameraRig />
 
         <Suspense fallback={null}>
-          {mounted.includes("hub") && <Hub />}
+          {mounted.includes("hub") && <Hub content={content} />}
           {mounted.includes("projects") && <ProjectsRealm content={content} />}
           {mounted.includes("experience") && <ExperienceRealm />}
           {mounted.includes("achievements") && (

@@ -40,10 +40,15 @@ export function buildHubIsland(): VoxelModel {
     m.fill(C + dx, y + 1, C + dz, C + dx, y + 3, C + dz, B.woodLight);
     m.set(C + dx, y + 4, C + dz, B.gold);
   }
-  // beacon: obsidian base, crystal column, floating gold spark
+  // beacon: obsidian base → warm crystal spire → floating spark.
+  // the heart of the home — a clear focal point, but not a blown-out flare
   m.set(C, y + 2, C, B.obsidian);
-  m.fill(C, y + 3, C, C, y + 4, C, B.warmLight);
-  m.set(C, y + 6, C, B.gold);
+  m.fill(C, y + 3, C, C, y + 6, C, B.amber); // dimmer shaft
+  m.set(C, y + 7, C, B.warmLight); // one bright core near the top
+  m.set(C, y + 8, C, B.gold); // cap
+  m.set(C, y + 10, C, B.gold); // floating spark
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const)
+    m.set(C + dx, y + 3, C + dz, B.amber); // ring of light at the base
 
   // — pond (dug into the grass, north-east) —
   m.fill(C + 6, y, C + 4, C + 9, y, C + 7, B.water);

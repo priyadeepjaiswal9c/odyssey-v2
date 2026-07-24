@@ -119,7 +119,6 @@ function ClassicBody({ content }: { content: Content }) {
   const { basics, work, education, projects, awards, skills, volunteer } = content;
   const github = basics.profiles.find((p) => p.network === "GitHub");
   const linkedin = basics.profiles.find((p) => p.network === "LinkedIn");
-  const allSkills = skills.flatMap((g) => g.keywords);
 
   // — theme (dark-first; remembered) —
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -192,7 +191,6 @@ function ClassicBody({ content }: { content: Content }) {
           <span className="cl-aura-blob" />
         </motion.div>
       </div>
-      <div className="cl-grain" aria-hidden />
 
       <header className="cl-topbar">
         <a className="cl-brand" href="/">
@@ -289,42 +287,22 @@ function ClassicBody({ content }: { content: Content }) {
           </motion.div>
         </motion.header>
 
-        {/* always-moving skills ribbon */}
-        {allSkills.length > 0 && (
-          <div className="cl-marquee" aria-hidden>
-            <motion.div
-              className="cl-marquee-track"
-              animate={{ x: ["0%", "-50%"] }}
-              transition={{ duration: 34, ease: "linear", repeat: Infinity }}
-            >
-              {[...allSkills, ...allSkills].map((k, i) => (
-                <span className="cl-tag" key={i}>
-                  {k}
-                  <span className="cl-tag-dot" />
-                </span>
-              ))}
-            </motion.div>
-          </div>
-        )}
-
         {skills.length > 0 && (
           <Section id="skills" num="01" tag="Toolkit" title="Skills">
             <Stagger className="cl-skillgroups">
               {skills.map((g) => (
                 <motion.div className="cl-skillgroup" variants={vItem} key={g.name}>
                   <h3 className="cl-skillgroup-name">{g.name}</h3>
-                  <div className="cl-chips">
-                    {g.keywords.map((k) => (
-                      <motion.span
-                        className="cl-chip"
-                        key={k}
-                        whileHover={{ y: -3, scale: 1.05 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 18 }}
-                      >
+                  <p className="cl-skill-list">
+                    {g.keywords.map((k, i) => (
+                      <span key={k} className="cl-skill">
                         {k}
-                      </motion.span>
+                        {i < g.keywords.length - 1 && (
+                          <span className="cl-skill-sep">{" · "}</span>
+                        )}
+                      </span>
                     ))}
-                  </div>
+                  </p>
                 </motion.div>
               ))}
             </Stagger>
@@ -400,22 +378,22 @@ function ClassicBody({ content }: { content: Content }) {
 
         {awards.length > 0 && (
           <Section id="achievements" num="04" tag="Recognition" title="Achievements">
-            <Stagger className="cl-award-grid">
-              {awards.map((a) => (
-                <motion.div
-                  key={a.title}
-                  className="cl-award"
-                  variants={vItem}
-                  whileHover={{ y: -5 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <h3 className="cl-entry-title">
-                    <Sparkles size={15} className="cl-accent" /> {a.title}
-                  </h3>
-                  <p className="cl-entry-lead">{a.summary}</p>
-                </motion.div>
-              ))}
-            </Stagger>
+            {awards.map((a) => (
+              <motion.div
+                key={a.title}
+                className="cl-entry cl-entry-compact"
+                variants={vItem}
+                initial="hidden"
+                whileInView="show"
+                viewport={VP}
+                whileHover={{ x: 6 }}
+              >
+                <h3 className="cl-entry-title">
+                  <Sparkles size={15} className="cl-accent" /> {a.title}
+                </h3>
+                <p className="cl-entry-lead">{a.summary}</p>
+              </motion.div>
+            ))}
           </Section>
         )}
 
@@ -446,20 +424,20 @@ function ClassicBody({ content }: { content: Content }) {
 
         {volunteer.length > 0 && (
           <Section id="extra" num="06" tag="Beyond work" title="Extra-curricular">
-            <Stagger className="cl-award-grid">
-              {volunteer.map((v) => (
-                <motion.div
-                  key={v.role}
-                  className="cl-award"
-                  variants={vItem}
-                  whileHover={{ y: -5 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <h3 className="cl-entry-title">{v.role}</h3>
-                  <p className="cl-entry-lead">{v.summary}</p>
-                </motion.div>
-              ))}
-            </Stagger>
+            {volunteer.map((v) => (
+              <motion.div
+                key={v.role}
+                className="cl-entry cl-entry-compact"
+                variants={vItem}
+                initial="hidden"
+                whileInView="show"
+                viewport={VP}
+                whileHover={{ x: 6 }}
+              >
+                <h3 className="cl-entry-title">{v.role}</h3>
+                <p className="cl-entry-lead">{v.summary}</p>
+              </motion.div>
+            ))}
           </Section>
         )}
 

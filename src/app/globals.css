@@ -1223,7 +1223,7 @@ html:has(.cl-root) { scroll-behavior: auto; } /* Lenis owns smooth scroll */
   background:linear-gradient(90deg, var(--cl-accent), var(--cl-accent-2)); box-shadow:0 0 12px var(--cl-glow);
 }
 /* parallax aurora — motion moves each layer, CSS drifts the blob inside */
-.cl-aurora { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.cl-aurora { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; opacity:0.62; }
 .cl-aura-layer { position:absolute; }
 .cl-aura-blob { position:absolute; inset:0; border-radius:50%; filter:blur(74px); }
 .cl-aura-a { width:50vw; height:50vw; left:-14vw; top:-8vw; }
@@ -1280,20 +1280,20 @@ html:has(.cl-root) { scroll-behavior: auto; } /* Lenis owns smooth scroll */
 
 .cl-page { position:relative; z-index:1; max-width:840px; margin:0 auto; padding:0 24px 120px; }
 
-.cl-hero { padding:90px 0 20px; }
+.cl-hero { padding:120px 0 30px; }
 .cl-kicker { display:flex; width:fit-content; align-items:center; gap:9px; font-family:var(--font-display); font-size:0.74rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--cl-accent); margin-bottom:16px; font-weight:700; }
 .cl-kicker-dot { width:7px; height:7px; border-radius:50%; background:var(--cl-accent); animation:cl-pulse 2.6s ease-in-out infinite; }
 @keyframes cl-pulse { 0%,100%{ box-shadow:0 0 0 0 var(--cl-glow); opacity:1 } 50%{ box-shadow:0 0 0 7px transparent; opacity:.55 } }
-.cl-name { font-family:var(--font-display); font-weight:700; font-size:clamp(42px,7vw,76px); line-height:1.0; letter-spacing:-0.025em; color:var(--cl-ink); margin-bottom:20px; perspective:800px; }
+.cl-name { font-family:var(--font-display); font-weight:700; font-size:clamp(46px,8.2vw,92px); line-height:0.98; letter-spacing:-0.028em; color:var(--cl-ink); margin-bottom:24px; perspective:800px; }
 .cl-word { display:inline-block; margin-right:0.26em; transform-origin:bottom; }
-.cl-what { font-size:clamp(16px,1.9vw,21px); color:var(--cl-ink); font-weight:600; margin-bottom:16px; max-width:60ch; }
+.cl-what { font-size:clamp(17px,2.1vw,23px); color:var(--cl-ink); font-weight:600; margin-bottom:18px; max-width:60ch; }
 .cl-summary { font-size:1rem; line-height:1.78; color:var(--cl-ink-soft); max-width:64ch; }
 .cl-meta { display:inline-flex; align-items:center; gap:6px; margin-top:16px; color:var(--cl-ink-faint); font-size:0.86rem; }
 .cl-hero-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; }
-.cl-btn { display:inline-flex; align-items:center; gap:7px; padding:10px 16px; border-radius:10px; font-family:var(--font-display); font-weight:600; font-size:0.85rem; text-decoration:none; color:var(--cl-ink); border:1px solid var(--cl-line-2); background:var(--cl-surface); }
-.cl-btn:hover { border-color:var(--cl-accent); background:var(--cl-surface-2); }
-.cl-btn-primary { background:var(--cl-accent); color:var(--cl-on-accent); border-color:transparent; box-shadow:0 6px 18px var(--cl-glow); }
-.cl-btn-primary:hover { background:var(--cl-accent-2); border-color:transparent; }
+.cl-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 15px; border-radius:10px; font-family:var(--font-display); font-weight:600; font-size:0.85rem; text-decoration:none; color:var(--cl-ink-soft); border:1px solid var(--cl-line-2); background:transparent; }
+.cl-btn:hover { border-color:var(--cl-ink-faint); color:var(--cl-ink); }
+.cl-btn-primary { color:var(--cl-accent); border-color:color-mix(in srgb, var(--cl-accent) 55%, transparent); background:transparent; box-shadow:none; }
+.cl-btn-primary:hover { color:var(--cl-accent); border-color:var(--cl-accent); background:var(--cl-tint); }
 
 /* full-bleed skills marquee */
 .cl-marquee {
@@ -1306,17 +1306,16 @@ html:has(.cl-root) { scroll-behavior: auto; } /* Lenis owns smooth scroll */
 .cl-tag { display:inline-flex; align-items:center; gap:26px; padding:15px 0 15px 26px; font-family:var(--font-display); font-weight:600; font-size:0.92rem; color:var(--cl-ink-soft); white-space:nowrap; }
 .cl-tag-dot { width:5px; height:5px; border-radius:50%; background:var(--cl-accent); opacity:0.7; }
 
-.cl-section { padding:56px 0 4px; }
-.cl-section-head { margin-bottom:26px; }
+.cl-section { padding:80px 0 4px; }
+.cl-section-head { margin-bottom:34px; }
 .cl-h2 { position:relative; display:inline-block; font-family:var(--font-display); font-weight:700; font-size:clamp(23px,2.9vw,32px); letter-spacing:-0.01em; color:var(--cl-ink); padding-bottom:11px; }
 .cl-h2-line { position:absolute; left:0; bottom:0; width:46px; height:3px; border-radius:3px; background:linear-gradient(90deg,var(--cl-accent),var(--cl-accent-2)); transform-origin:0 50%; }
 .cl-accent { color:var(--cl-accent); }
 
 .cl-skillgroups { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:24px; }
 .cl-skillgroup-name { font-family:var(--font-display); font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--cl-ink-faint); margin-bottom:13px; font-weight:700; }
-.cl-chips { display:flex; flex-wrap:wrap; gap:8px; }
-.cl-chip { font-size:0.82rem; padding:6px 13px; border-radius:8px; background:var(--cl-surface); border:1px solid var(--cl-line-2); color:var(--cl-ink-soft); cursor:default; }
-.cl-chip:hover { border-color:var(--cl-accent); color:var(--cl-ink); background:var(--cl-tint); }
+.cl-skill-list { font-size:1rem; line-height:1.95; color:var(--cl-ink); overflow-wrap:break-word; }
+.cl-skill-sep { color:var(--cl-accent); opacity:0.5; }
 
 .cl-entry { position:relative; padding:24px 0 24px 20px; border-bottom:1px solid var(--cl-line); }
 .cl-entry::before { content:""; position:absolute; left:0; top:24px; bottom:24px; width:2px; border-radius:2px; background:var(--cl-line-2); transition:background .25s, box-shadow .25s; }
@@ -1368,3 +1367,41 @@ html:has(.cl-root) { scroll-behavior: auto; } /* Lenis owns smooth scroll */
   text-decoration: none; font-family: var(--font-display); font-size: 0.82rem; border-bottom: 1px solid transparent;
 }
 .gate-pdf:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ── first-visit guidance layer (world) ─────────────── */
+.guide { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+.guide-mark { position: absolute; transform: translate(-50%, 0); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.guide-mark.is-center { transform: translate(-50%, -50%); }
+.guide-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 0 rgba(255,184,77,0.5); animation: guide-pulse 2s ease-out infinite; }
+.guide-ring { width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid rgba(255,233,196,0.85); box-shadow: 0 0 22px rgba(255,184,77,0.35), inset 0 0 18px rgba(255,184,77,0.14); animation: guide-ring 2.4s ease-out infinite; }
+.guide-label { font-family: var(--font-display); font-size: 0.76rem; letter-spacing: 0.03em; color: var(--cream); background: rgba(24,17,10,0.72); border: 1px solid rgba(255,220,180,0.18); backdrop-filter: blur(8px); padding: 5px 11px; border-radius: 999px; white-space: nowrap; }
+.guide-mark.is-center .guide-label { margin-top: 4px; }
+@keyframes guide-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,184,77,0.5); } 70%,100% { box-shadow: 0 0 0 9px rgba(255,184,77,0); } }
+@keyframes guide-ring { 0% { transform: scale(0.82); opacity: 0.95; } 70% { transform: scale(1.12); opacity: 0.35; } 100% { transform: scale(0.82); opacity: 0.95; } }
+@media (prefers-reduced-motion: reduce) { .guide-dot, .guide-ring { animation: none; } }
+
+/* ── phones: world top bar + classic page ───────────── */
+@media (max-width: 640px) {
+  /* world HUD top bar — keep it to icons + essentials */
+  .topbar { gap: 8px; padding: 0 12px; height: 54px; }
+  .topbar-brand { font-size: 0.88rem; }
+  .topbar-ghost { display: none; }      /* GitHub/LinkedIn live in the contact card */
+  .topbar-sep { display: none; }
+  .topbar-link-label { display: none; } /* classic-view: icon only */
+  .topbar-link { padding: 8px; }
+  .topbar-cta { padding: 8px 11px; }
+  .scroll-hint { bottom: 20px; font-size: 0.8rem; padding: 8px 14px; }
+
+  /* classic page — tighter rhythm, roomy tap targets */
+  .cl-topbar { gap: 12px; padding: 0 16px; height: 54px; }
+  .cl-page { padding: 0 20px 90px; }
+  .cl-hero { padding: 78px 0 24px; }
+  .cl-section { padding: 60px 0 4px; }
+  .cl-nav-back .cl-nav-label, .cl-nav-back span { }
+  .cl-hero-actions .cl-btn { padding: 10px 14px; }
+  .cl-skillgroups { gap: 20px; }
+}
+@media (max-width: 400px) {
+  .cl-nav-back span:not(.cl-nav-label) { }
+  .topbar-brand { font-size: 0.82rem; }
+}
