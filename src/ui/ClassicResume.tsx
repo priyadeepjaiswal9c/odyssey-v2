@@ -1,6 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  motion,
+  MotionConfig,
+  AnimatePresence,
+  useScroll,
+  useSpring,
+  useTransform,
+  type Variants,
+} from "motion/react";
+import { ReactLenis, useLenis } from "lenis/react";
 import {
   Download,
   Mail,
@@ -21,89 +31,104 @@ const NAV = [
   { id: "contact", label: "Contact" },
 ];
 
-/** fades + lifts a block into view as it scrolls in (progressive enhancement) */
-function Reveal({
-  children,
-  className = "",
-  delay = 0,
-  as: Tag = "div",
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-  as?: "div" | "li" | "section";
-}) {
-  const ref = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      el.classList.add("is-in");
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries)
-          if (e.isIntersecting) {
-            el.classList.add("is-in");
-            io.unobserve(el);
-          }
-      },
-      { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+const EASE = [0.22, 1, 0.36, 1] as const;
+const VP = { once: true, margin: "0px 0px -10% 0px" } as const;
+
+const vItem: Variants = {
+  hidden: { opacity: 0, y: 26 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+};
+const vContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } },
+};
+const vWord: Variants = {
+  hidden: { opacity: 0, y: "0.6em", rotateX: -55 },
+  show: { opacity: 1, y: 0, rotateX: 0, transition: { duration: 0.85, ease: EASE } },
+};
+const vLine: Variants = {
+  hidden: { scaleX: 0 },
+  show: { scaleX: 1, transition: { duration: 0.6, ease: EASE, delay: 0.1 } },
+};
+
+/** every block enters as it scrolls into view */
+function Reveal({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <Tag
-      // @ts-expect-error — polymorphic ref across div/li/section is safe here
-      ref={ref}
-      className={`cl-reveal ${className}`}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
-    >
+    <motion.div className={className} variants={vItem} initial="hidden" whileInView="show" viewport={VP}>
       {children}
-    </Tag>
+    </motion.div>
+  );
+}
+
+/** orchestrates staggered children */
+function Stagger({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div className={className} variants={vContainer} initial="hidden" whileInView="show" viewport={VP}>
+      {children}
+    </motion.div>
   );
 }
 
 function Section({
   id,
-  kicker,
+  num,
+  tag,
   title,
   children,
 }: {
   id: string;
-  kicker: string;
+  num: string;
+  tag: string;
   title: string;
   children: ReactNode;
 }) {
   return (
     <section id={id} className="cl-section">
-      <Reveal className="cl-section-head">
-        <p className="cl-kicker">
+      <motion.div
+        className="cl-section-head"
+        variants={vContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={VP}
+      >
+        <motion.p className="cl-kicker" variants={vItem}>
           <span className="cl-kicker-dot" />
-          {kicker}
-        </p>
-        <h2 className="cl-h2">{title}</h2>
-      </Reveal>
+          {num} — {tag}
+        </motion.p>
+        <motion.h2 className="cl-h2" variants={vItem}>
+          {title}
+          <motion.span className="cl-h2-line" variants={vLine} />
+        </motion.h2>
+      </motion.div>
       {children}
     </section>
   );
 }
 
 export function ClassicResume({ content }: { content: Content }) {
+  return (
+    <MotionConfig reducedMotion="user">
+      <ReactLenis root options={{ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1 }}>
+        <ClassicBody content={content} />
+      </ReactLenis>
+    </MotionConfig>
+  );
+}
+
+function ClassicBody({ content }: { content: Content }) {
   const { basics, work, education, projects, awards, skills, volunteer } = content;
   const github = basics.profiles.find((p) => p.network === "GitHub");
   const linkedin = basics.profiles.find((p) => p.network === "LinkedIn");
+  const allSkills = skills.flatMap((g) => g.keywords);
 
-  // — theme (dark-first, to match the world; remembered per visitor) —
+  // — theme (dark-first; remembered) —
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   useEffect(() => {
     try {
       const saved = localStorage.getItem("cl-theme");
       if (saved === "light" || saved === "dark") setTheme(saved);
     } catch {
-      /* private mode — stay on default */
+      /* private mode */
     }
   }, []);
   const toggleTheme = useCallback(() => {
@@ -118,33 +143,18 @@ export function ClassicResume({ content }: { content: Content }) {
     });
   }, []);
 
-  // — reading-progress bar —
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const max = document.body.scrollHeight - window.innerHeight;
-        setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-
-  // — scroll-spy: which section the nav should light up —
+  // — smooth-scrolled anchor nav + scroll-spy —
+  const lenis = useLenis();
+  const go = useCallback(
+    (e: React.MouseEvent, id: string) => {
+      e.preventDefault();
+      lenis?.scrollTo(`#${id}`, { offset: -70, duration: 1.1 });
+    },
+    [lenis]
+  );
   const [active, setActive] = useState("");
   useEffect(() => {
-    const els = NAV.map((n) => document.getElementById(n.id)).filter(
-      Boolean
-    ) as HTMLElement[];
+    const els = NAV.map((n) => document.getElementById(n.id)).filter(Boolean) as HTMLElement[];
     if (!els.length) return;
     const io = new IntersectionObserver(
       (entries) => {
@@ -156,19 +166,33 @@ export function ClassicResume({ content }: { content: Content }) {
     return () => io.disconnect();
   }, []);
 
+  // — scroll-linked motion: progress bar + aurora parallax —
+  const { scrollY, scrollYProgress } = useScroll();
+  const progressX = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.3 });
+  const ay1 = useTransform(scrollY, [0, 3000], [0, 260], { clamp: false });
+  const ay2 = useTransform(scrollY, [0, 3000], [0, -170], { clamp: false });
+  const ay3 = useTransform(scrollY, [0, 3000], [0, 210], { clamp: false });
+
   return (
-    <div className="cl-root" data-theme={theme}>
-      <div
-        className="cl-progress"
-        style={{ transform: `scaleX(${progress})` }}
-        aria-hidden
-      />
-      {/* slow warm aurora drifting behind everything */}
+    <div className="cl-root cl-body" data-theme={theme}>
+      <noscript>
+        <style>{`.cl-page [style]{opacity:1 !important;transform:none !important}`}</style>
+      </noscript>
+
+      <motion.div className="cl-progress" style={{ scaleX: progressX }} aria-hidden />
+
       <div className="cl-aurora" aria-hidden>
-        <span className="cl-aurora-a" />
-        <span className="cl-aurora-b" />
-        <span className="cl-aurora-c" />
+        <motion.div className="cl-aura-layer cl-aura-a" style={{ y: ay1 }}>
+          <span className="cl-aura-blob" />
+        </motion.div>
+        <motion.div className="cl-aura-layer cl-aura-b" style={{ y: ay2 }}>
+          <span className="cl-aura-blob" />
+        </motion.div>
+        <motion.div className="cl-aura-layer cl-aura-c" style={{ y: ay3 }}>
+          <span className="cl-aura-blob" />
+        </motion.div>
       </div>
+      <div className="cl-grain" aria-hidden />
 
       <header className="cl-topbar">
         <a className="cl-brand" href="/">
@@ -178,10 +202,18 @@ export function ClassicResume({ content }: { content: Content }) {
           {NAV.map((n) => (
             <a
               key={n.id}
-              className={`cl-nav-link ${active === n.id ? "is-active" : ""}`}
               href={`#${n.id}`}
+              onClick={(e) => go(e, n.id)}
+              className={`cl-nav-link ${active === n.id ? "is-active" : ""}`}
             >
-              {n.label}
+              {active === n.id && (
+                <motion.span
+                  layoutId="cl-nav-pill"
+                  className="cl-nav-pill"
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                />
+              )}
+              <span className="cl-nav-label">{n.label}</span>
             </a>
           ))}
         </nav>
@@ -192,9 +224,18 @@ export function ClassicResume({ content }: { content: Content }) {
             aria-label={theme === "dark" ? "Switch to light" : "Switch to dark"}
             title={theme === "dark" ? "Light" : "Dark"}
           >
-            <span className="cl-theme-icon">
-              {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-            </span>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={theme}
+                className="cl-theme-icon"
+                initial={{ rotate: -90, opacity: 0, scale: 0.4 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: 90, opacity: 0, scale: 0.4 }}
+                transition={{ duration: 0.28, ease: EASE }}
+              >
+                {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+              </motion.span>
+            </AnimatePresence>
           </button>
           <a className="cl-nav-back" href="/">
             <ArrowLeft size={14} /> World
@@ -206,71 +247,102 @@ export function ClassicResume({ content }: { content: Content }) {
       </header>
 
       <div className="cl-page">
-        {/* hero */}
-        <header className="cl-hero">
-          <Reveal>
-            <p className="cl-kicker">
-              <span className="cl-kicker-dot" />
-              {basics.tagline}
-            </p>
-          </Reveal>
-          <Reveal delay={90}>
-            <h1 className="cl-name">{basics.name}</h1>
-          </Reveal>
-          <Reveal delay={170}>
-            <p className="cl-what">{basics.whatIDo}</p>
-          </Reveal>
-          <Reveal delay={240}>
-            <p className="cl-summary">{basics.summary}</p>
-            <p className="cl-meta">
-              <MapPin size={14} /> {basics.location}
-            </p>
-          </Reveal>
-          <Reveal delay={320}>
-            <div className="cl-hero-actions">
-              <a className="cl-btn cl-btn-primary" href={`mailto:${basics.email}`}>
-                <Mail size={15} /> Email
-              </a>
-              {github && (
-                <a className="cl-btn" href={github.url} target="_blank" rel="noopener">
-                  GitHub <ArrowUpRight size={13} />
-                </a>
-              )}
-              {linkedin && (
-                <a className="cl-btn" href={linkedin.url} target="_blank" rel="noopener">
-                  LinkedIn <ArrowUpRight size={13} />
-                </a>
-              )}
-              <a className="cl-btn" href="/resume.pdf" download>
-                <Download size={14} /> PDF
-              </a>
-            </div>
-          </Reveal>
-        </header>
+        {/* hero — orchestrated page-load reveal */}
+        <motion.header className="cl-hero" variants={vContainer} initial="hidden" animate="show">
+          <motion.p className="cl-kicker" variants={vItem}>
+            <span className="cl-kicker-dot" />
+            {basics.tagline}
+          </motion.p>
+          <motion.h1 className="cl-name" variants={vContainer}>
+            {basics.name.split(" ").map((w, i) => (
+              <motion.span className="cl-word" variants={vWord} key={i}>
+                {w}
+              </motion.span>
+            ))}
+          </motion.h1>
+          <motion.p className="cl-what" variants={vItem}>
+            {basics.whatIDo}
+          </motion.p>
+          <motion.p className="cl-summary" variants={vItem}>
+            {basics.summary}
+          </motion.p>
+          <motion.p className="cl-meta" variants={vItem}>
+            <MapPin size={14} /> {basics.location}
+          </motion.p>
+          <motion.div className="cl-hero-actions" variants={vItem}>
+            <MotionLink className="cl-btn cl-btn-primary" href={`mailto:${basics.email}`}>
+              <Mail size={15} /> Email
+            </MotionLink>
+            {github && (
+              <MotionLink className="cl-btn" href={github.url} target="_blank" rel="noopener">
+                GitHub <ArrowUpRight size={13} />
+              </MotionLink>
+            )}
+            {linkedin && (
+              <MotionLink className="cl-btn" href={linkedin.url} target="_blank" rel="noopener">
+                LinkedIn <ArrowUpRight size={13} />
+              </MotionLink>
+            )}
+            <MotionLink className="cl-btn" href="/resume.pdf" download>
+              <Download size={14} /> PDF
+            </MotionLink>
+          </motion.div>
+        </motion.header>
+
+        {/* always-moving skills ribbon */}
+        {allSkills.length > 0 && (
+          <div className="cl-marquee" aria-hidden>
+            <motion.div
+              className="cl-marquee-track"
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{ duration: 34, ease: "linear", repeat: Infinity }}
+            >
+              {[...allSkills, ...allSkills].map((k, i) => (
+                <span className="cl-tag" key={i}>
+                  {k}
+                  <span className="cl-tag-dot" />
+                </span>
+              ))}
+            </motion.div>
+          </div>
+        )}
 
         {skills.length > 0 && (
-          <Section id="skills" kicker="01 — Toolkit" title="Skills">
-            <div className="cl-skillgroups">
-              {skills.map((g, i) => (
-                <Reveal key={g.name} className="cl-skillgroup" delay={i * 70}>
+          <Section id="skills" num="01" tag="Toolkit" title="Skills">
+            <Stagger className="cl-skillgroups">
+              {skills.map((g) => (
+                <motion.div className="cl-skillgroup" variants={vItem} key={g.name}>
                   <h3 className="cl-skillgroup-name">{g.name}</h3>
                   <div className="cl-chips">
                     {g.keywords.map((k) => (
-                      <span key={k} className="cl-chip">
+                      <motion.span
+                        className="cl-chip"
+                        key={k}
+                        whileHover={{ y: -3, scale: 1.05 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                      >
                         {k}
-                      </span>
+                      </motion.span>
                     ))}
                   </div>
-                </Reveal>
+                </motion.div>
               ))}
-            </div>
+            </Stagger>
           </Section>
         )}
 
         {work.length > 0 && (
-          <Section id="experience" kicker="02 — Career" title="Experience">
-            {work.map((w, i) => (
-              <Reveal key={w.name + w.position} className="cl-entry" delay={i * 55}>
+          <Section id="experience" num="02" tag="Career" title="Experience">
+            {work.map((w) => (
+              <motion.div
+                key={w.name + w.position}
+                className="cl-entry"
+                variants={vItem}
+                initial="hidden"
+                whileInView="show"
+                viewport={VP}
+                whileHover={{ x: 6 }}
+              >
                 <div className="cl-entry-head">
                   <h3 className="cl-entry-title">
                     {w.position} · <span className="cl-accent">{w.name}</span>
@@ -285,15 +357,23 @@ export function ClassicResume({ content }: { content: Content }) {
                     <li key={j}>{h}</li>
                   ))}
                 </ul>
-              </Reveal>
+              </motion.div>
             ))}
           </Section>
         )}
 
         {projects.length > 0 && (
-          <Section id="projects" kicker="03 — Selected builds" title="Projects">
-            {projects.map((p, i) => (
-              <Reveal key={p.slug} className="cl-entry" delay={i * 55}>
+          <Section id="projects" num="03" tag="Selected builds" title="Projects">
+            {projects.map((p) => (
+              <motion.div
+                key={p.slug}
+                className="cl-entry"
+                variants={vItem}
+                initial="hidden"
+                whileInView="show"
+                viewport={VP}
+                whileHover={{ x: 6 }}
+              >
                 <div className="cl-entry-head">
                   <h3 className="cl-entry-title">{p.name}</h3>
                   <span className="cl-entry-meta">{p.stack}</span>
@@ -313,30 +393,44 @@ export function ClassicResume({ content }: { content: Content }) {
                     ))}
                   </div>
                 )}
-              </Reveal>
+              </motion.div>
             ))}
           </Section>
         )}
 
         {awards.length > 0 && (
-          <Section id="achievements" kicker="04 — Recognition" title="Achievements">
-            <div className="cl-award-grid">
-              {awards.map((a, i) => (
-                <Reveal key={a.title} className="cl-award" delay={i * 55}>
+          <Section id="achievements" num="04" tag="Recognition" title="Achievements">
+            <Stagger className="cl-award-grid">
+              {awards.map((a) => (
+                <motion.div
+                  key={a.title}
+                  className="cl-award"
+                  variants={vItem}
+                  whileHover={{ y: -5 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
                   <h3 className="cl-entry-title">
                     <Sparkles size={15} className="cl-accent" /> {a.title}
                   </h3>
                   <p className="cl-entry-lead">{a.summary}</p>
-                </Reveal>
+                </motion.div>
               ))}
-            </div>
+            </Stagger>
           </Section>
         )}
 
         {education.length > 0 && (
-          <Section id="education" kicker="05 — Studies" title="Education">
-            {education.map((e, i) => (
-              <Reveal key={e.institution} className="cl-entry cl-entry-compact" delay={i * 55}>
+          <Section id="education" num="05" tag="Studies" title="Education">
+            {education.map((e) => (
+              <motion.div
+                key={e.institution}
+                className="cl-entry cl-entry-compact"
+                variants={vItem}
+                initial="hidden"
+                whileInView="show"
+                viewport={VP}
+                whileHover={{ x: 6 }}
+              >
                 <div className="cl-entry-head">
                   <h3 className="cl-entry-title">{e.institution}</h3>
                   <span className="cl-entry-meta">{e.dates}</span>
@@ -345,56 +439,93 @@ export function ClassicResume({ content }: { content: Content }) {
                   {e.degree}
                   {e.score ? ` · ${e.score}` : ""}
                 </p>
-              </Reveal>
+              </motion.div>
             ))}
           </Section>
         )}
 
         {volunteer.length > 0 && (
-          <Section id="extra" kicker="06 — Beyond work" title="Extra-curricular">
-            <div className="cl-award-grid">
-              {volunteer.map((v, i) => (
-                <Reveal key={v.role} className="cl-award" delay={i * 55}>
+          <Section id="extra" num="06" tag="Beyond work" title="Extra-curricular">
+            <Stagger className="cl-award-grid">
+              {volunteer.map((v) => (
+                <motion.div
+                  key={v.role}
+                  className="cl-award"
+                  variants={vItem}
+                  whileHover={{ y: -5 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
                   <h3 className="cl-entry-title">{v.role}</h3>
                   <p className="cl-entry-lead">{v.summary}</p>
-                </Reveal>
+                </motion.div>
               ))}
-            </div>
+            </Stagger>
           </Section>
         )}
 
-        <Section id="contact" kicker="07 — Say hello" title="Let's talk">
+        <Section id="contact" num="07" tag="Say hello" title="Let's talk">
           <Reveal className="cl-contact">
             <p>
               Open to internships, research, and genuinely ambitious builds —
               especially anything with agents, evals, or systems at the core.
             </p>
             <div className="cl-hero-actions">
-              <a className="cl-btn cl-btn-primary" href={`mailto:${basics.email}`}>
+              <MotionLink className="cl-btn cl-btn-primary" href={`mailto:${basics.email}`}>
                 <Mail size={15} /> {basics.email}
-              </a>
+              </MotionLink>
               {github && (
-                <a className="cl-btn" href={github.url} target="_blank" rel="noopener">
+                <MotionLink className="cl-btn" href={github.url} target="_blank" rel="noopener">
                   GitHub <ArrowUpRight size={13} />
-                </a>
+                </MotionLink>
               )}
               {linkedin && (
-                <a className="cl-btn" href={linkedin.url} target="_blank" rel="noopener">
+                <MotionLink className="cl-btn" href={linkedin.url} target="_blank" rel="noopener">
                   LinkedIn <ArrowUpRight size={13} />
-                </a>
+                </MotionLink>
               )}
-              <a className="cl-btn" href="/resume.pdf" download>
+              <MotionLink className="cl-btn" href="/resume.pdf" download>
                 <Download size={14} /> Résumé PDF
-              </a>
+              </MotionLink>
             </div>
           </Reveal>
         </Section>
 
         <footer className="cl-footer">
-          © 2026 {basics.name} ·{" "}
-          <a href="/">the world</a>
+          © 2026 {basics.name} · <a href="/">the world</a>
         </footer>
       </div>
     </div>
+  );
+}
+
+/** an anchor with a springy hover/tap — used for every button */
+function MotionLink({
+  children,
+  className,
+  href,
+  target,
+  rel,
+  download,
+}: {
+  children: ReactNode;
+  className?: string;
+  href: string;
+  target?: string;
+  rel?: string;
+  download?: boolean;
+}) {
+  return (
+    <motion.a
+      className={className}
+      href={href}
+      target={target}
+      rel={rel}
+      download={download}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+    >
+      {children}
+    </motion.a>
   );
 }
