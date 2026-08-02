@@ -1,68 +1,65 @@
 # Kalpana ✦ — a voxel portfolio world
 
-**Kalpana** ("imagination") is Priyadeep Jaiswal's portfolio as a place: a golden-hour voxel
-cosmos of floating islands you tour cinematically — a control-tower island humming with power
-lines, a marble courthouse-library, a campus transit hub with a live rail loop, a village of
-profession-villagers, a marble hall of glowing trophies, and a cozy home base with a mailbox.
-A silent glowing critter named **Kip** leads the way.
+**Kalpana** ("imagination") is Priyadeep Jaiswal's portfolio as a *place*: a golden-hour cosmos
+of floating voxel islands you explore — a control-tower island humming with power lines, a marble
+courthouse-library, a campus transit hub, the Guilds and Commons of experience, a hall of glowing
+trophies, and a cozy home island crowned with the name.
 
-Built end-to-end in one autonomous run (odyssey-v2 of the RESUME moonshots).
+Two ways in, chosen from the landing:
 
-## The experience
+- **Enter the world** — the 3D experience.
+- **Classic view** — a warm, minimal, motion-driven reading version for anyone who'd rather skim.
 
-- **Minecraft-style start menu** — stone buttons, blocky logo; the first click unlocks audio.
-- **Guided cinematic tour** — GSAP camera flights between 17 stops across 5 realms;
-  click-to-travel via realm pills, `←`/`→` keys, or the tour dock. No free-roam, no physics.
-- **RTX-ish look** — PBR materials over greedy-meshed voxels with baked per-vertex AO,
-  env reflections sampled from the sky itself, soft shadows, bloom + god-rays + vignette.
-- **Day/night** — 🌙 toggles a starry night where the lamps and power lines carry the scene.
-- **Sound** — every click, whoosh, chime, and the ambient music loop is synthesized live in
-  WebAudio. Original by construction; zero audio assets. Mute persists.
-- **SSR text core** — the complete résumé is server-rendered semantic HTML underneath the
-  world. Crawlers, screen readers, reduced-motion users, and no-WebGL devices get everything.
-  (Also reachable any time via **📄 Text** or the skip link.)
+## The 3D experience
+
+- **Explore, don't watch** — eight cinematic stops (hub → three project islands → work → extra-
+  curricular → achievements → contact). Scroll or use the ‹ › chevrons to move between them; **drag
+  anywhere to orbit** the island you're on and see it from any angle.
+- **A quiet welcome** — first-time visitors get a one-time, minimalist guidance layer pointing at
+  drag-to-look, the day/night switch, and the classic view; it fades on first interaction.
+- **Golden-hour look** — PBR materials over greedy-meshed voxels with baked per-vertex AO, sky-
+  sampled reflections, soft shadows, bloom + god-rays. A soft dark-blue **night** mode with stars.
+- **Live audio** — every click, whoosh and chime plus the ambient loop is synthesized in WebAudio;
+  zero audio assets. Mute persists.
+- **Always readable** — the résumé is server-rendered underneath, so crawlers, screen readers and
+  no-WebGL devices get everything; the Classic view is one click away at any time.
+
+## The classic view (`/classic`)
+
+A statically-served reading experience that still feels alive: **Lenis** smooth scroll, **Framer
+Motion** entrance reveals on every block, a word-flip hero, a sliding section-nav indicator, a
+scroll progress bar and parallax ambience. **Light + dark** themes (remembered per visitor),
+warm and deliberately minimal — typography and whitespace over boxes and color.
 
 ## Architecture
 
 ```
 src/
-  content/          # JSON-Resume-shaped data (APEX feed contract v1)
-    resume.ts       #   seed transcribed from main.tex
-    loader.ts       #   FEED_URL → public/feed.json → seed (validated fallback)
-  lib/
-    voxel/          # engine: VoxelModel builder ops, greedy mesher (AO,
-                    #   directional tints, jitter-patches, material classes)
-    audio.ts        # WebAudio engine: SFX + generative ambient loop
+  content/        # JSON-Resume-shaped data + loader (APEX feed contract; falls back to seed)
+  lib/voxel/      # engine: VoxelModel builder, greedy mesher (AO, tints, material classes)
+  lib/audio.ts    # WebAudio engine: SFX + generative ambient loop
   world/
     layout.ts       # realm geography + golden-hour palette
-    stops.ts        # the tour, data-driven from the résumé
-    store.ts        # zustand: phase/tour/quality/night/audio state
-    CameraRig.tsx   # GSAP arc flights, idle drift, parallax, FOV breathing
-    VoxelMesh.tsx   # model → per-material-class meshes + HDR glow pass
-    Sky.tsx         # painterly sky shader (day/night), sun disc, clouds
-    Kip.tsx         # the critter
-    structures/     # bespoke builds: meridian, tark, campuscab, hub,
-                    #   experience, achievements, about, villagers
+    stops.ts        # the eight-stop tour, data-driven from the résumé
+    store.ts        # zustand: phase / stop / quality / night / audio
+    CameraRig.tsx   # GSAP arc flights, idle drift, pointer parallax, drag-to-orbit
+    VoxelMesh.tsx   # model → per-material-class meshes + HDR glow
+    Sky.tsx         # day/night sky shader, sun/moon disc, clouds
+    structures/     # bespoke builds: meridian, tark, campuscab, hub, experience, …
     realms/         # mount-on-demand realm components (one realm at a time)
-  ui/               # start menu, HUD (realm nav, tour dock, showcase cards)
-  app/              # Next.js App Router: SSR core + world gate
-scripts/
-  shot.mjs          # visual verification: headed isolated Chrome screenshots
-                    #   of every tour stop via the dev-only __kalpana hook
+  ui/
+    EntryGate.tsx     # the landing: choose world or classic
+    Hud.tsx           # top bar, edge nav, showcase cards, scroll hint
+    GuideLayer.tsx    # one-time welcome coach marks
+    ClassicResume.tsx # the animated classic view (Motion + Lenis)
+  app/            # Next.js App Router — SSR core + world gate + /classic
+scripts/          # headless-Chrome screenshot harness (every stop via the dev-only hook)
 ```
 
-**Perf:** one greedy-meshed geometry per island per material class (a handful of draw calls
-per realm), realms mount on demand, quality tiers (high/medium/low) set at boot from device
-signals and stepped down automatically if FPS sags. DPR clamped per tier; postprocessing
-only on high/medium.
-
-## APEX feed (contract v1)
-
-The world is data-driven. Publish a JSON Resume-shaped `feed.json`
-(see `../SHARED-INTERFACES.md`) either at build time via `FEED_URL` or as
-`public/feed.json`; it's validated and falls back to the built-in seed if absent
-or malformed. Projects in the feed appear in the SSR core immediately; islands
-exist for slugs in `src/world/registry.ts` (`BUILT_ISLANDS`).
+**Performance:** one greedy-meshed geometry per island per material class, realms mount on demand,
+quality tiers set at boot and stepped down automatically if FPS sags, DPR clamped per tier,
+postprocessing only on high/medium. Fonts: **Space Grotesk** (display) + **Nunito** (body), self-
+hosted via `next/font`. All world art is procedural voxels; all audio is synthesized.
 
 ## Develop
 
@@ -70,16 +67,18 @@ exist for slugs in `src/world/registry.ts` (`BUILT_ISLANDS`).
 npm install
 npm run dev            # http://localhost:3000
 npm run build          # production build (stop the dev server first — shared .next/)
-node scripts/shot.mjs  # screenshot every tour stop → /tmp/kalpana-shots
+node scripts/shot.mjs  # screenshot every stop → /tmp/kalpana-shots
 ```
 
 ## Deploy
 
+Import the repo at [vercel.com/new](https://vercel.com/new) (Next.js is auto-detected — no config
+needed), or with the CLI:
+
 ```bash
-vercel --prod --yes
+vercel --prod
 ```
 
 ---
 
-*Fonts: Pixelify Sans + Nunito (Google Fonts, self-hosted by next/font). All world art is
-procedural voxels; all audio is synthesized — no third-party assets anywhere.*
+*Built with Next.js · React Three Fiber · drei · Framer Motion · Lenis · GSAP · Zustand.*
